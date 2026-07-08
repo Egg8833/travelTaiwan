@@ -1,13 +1,10 @@
-import {onMounted, ref, computed} from 'vue'
+import {ref} from 'vue'
 import {defineStore} from 'pinia'
-import {getViewApi} from '../api/index.js'
-
-import cityData from '@/assets/data/cityData.json'
-
+import {getViewApi} from '@/api/index.js'
 import processViewData from '@/common/processList.js'
+
 export const useViewListStore = defineStore('viewList', () => {
   const viewData = ref([])
-  const viewList = ref([])
   const cityName = ref('Taipei')
   const cityNameApi = ref('')
 
@@ -16,16 +13,11 @@ export const useViewListStore = defineStore('viewList', () => {
   }
 
   async function getViewsStoreData() {
-    if (viewList.value.length > 0 && cityName.value === cityNameApi.value) {
-      // console.log('資料重複取得，未呼叫api')
+    if (viewData.value.length > 0 && cityName.value === cityNameApi.value) {
       return
     }
-
-    // viewList.value = cityData //假資料
-    viewList.value = await getViewApi(cityName.value)
-
-    viewData.value = processViewData(viewList.value)
-
+    const list = await getViewApi(cityName.value)
+    viewData.value = processViewData(list)
     cityNameApi.value = cityName.value
   }
 
