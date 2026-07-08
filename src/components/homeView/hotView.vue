@@ -1,6 +1,6 @@
 <script setup>
-import homeViewData from "@/assets/data/homeViewPoint.json";
-import { computed, ref, watch } from "vue";
+import { getHomeViewsApi } from "@/api/index.js";
+import { computed, ref, watch, onMounted } from "vue";
 import northMap from "@/assets/images/map_north.png";
 import centerMap from "@/assets/images/map_center.png";
 import southMap from "@/assets/images/map_south.png";
@@ -61,12 +61,24 @@ const viewArea = ["北部地區", "中部地區", "南部地區", "東部地區"
 const dataText = computed(() => viewPointData[selectIndex.value].text);
 const dataImg = computed(() => viewPointImg[selectIndex.value].src);
 
-const selectAreaData = computed(() => {
-  idx.value = 0;
-  return homeViewData[selectIndex.value][viewArea[selectIndex.value]];
+const homeViewData = ref([]);
+onMounted(async () => {
+  try {
+    homeViewData.value = await getHomeViewsApi();
+  } catch (e) {
+    console.error(e);
+  }
 });
 
 const idx = ref(0);
+const selectAreaData = computed(() => {
+  const areaObj = homeViewData.value[selectIndex.value];
+  return areaObj ? areaObj[viewArea[selectIndex.value]] : [];
+});
+
+watch(selectIndex, () => {
+  idx.value = 0;
+});
 const maxIdx = computed(() => selectAreaData.value.length - 3);
 const clickAreaIdx = (direction) => {
   if (direction === "left") {
