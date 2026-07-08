@@ -6,50 +6,30 @@ import ArticleToggle from "../components/ArticleToggle.vue";
 import { useRoute } from "vue-router";
 
 import { getImagePath } from "@/common/useImage";
-import allViewPoint from "@/assets/data/allViewPoint.json";
 import { storeToRefs } from "pinia";
-import { useViewListStore } from "../store/viewStore";
 import { useHomeViewStore } from "@/store/homeViewStore";
 import processViewData from "@/common/processList.js";
+import { getViewByIdApi } from "@/api/index.js";
 const homeViewStore = useHomeViewStore();
 const { filteredData, haveSearchTravel, randomThreeItems } =
   storeToRefs(homeViewStore);
-const { getRandomItemsFromArray } = homeViewStore;
+const { refreshRandomItems } = homeViewStore;
 
-// const store = useViewListStore();
-const viewListStore = useViewListStore();
-const { viewData } = storeToRefs(viewListStore);
-const { getViewsStoreData, setCityName } = viewListStore;
-// store.getData();
 // 優化建議 進入頁面後把資料存入到localstrorage
 
 const route = useRoute();
 const viewListId = ref(route.path.split("/").pop());
+const renderViewData = ref(null);
 
-const renderViewData = computed(() => {
-  // 從首頁熱門景點來的資料
-
-  if (viewListId.value.startsWith("VCA")) {
-    const areaData = processViewData(allViewPoint);
-
-    const data = areaData.find((item) => item.id === viewListId.value);
-
-    return data;
-  } else {
-    // 搜尋結果資料
-    if (haveSearchTravel.value) {
-      const data = filteredData.value.find(
-        (item) => item.id === viewListId.value
-      );
-      return data;
-    } else {
-      // api景點資料
-      const data = viewData.value.find((item) => item.id === viewListId.value);
-
-      return data;
-    }
+const loadViewData = async (id) => {
+  try {
+    const data = await getViewByIdApi(id);
+    renderViewData.value = processViewData([data])[0];
+  } catch (e) {
+    alert("查無相關景點資訊");
   }
-});
+};
+loadViewData(viewListId.value);
 
 const commitList = ref([
   {
@@ -72,12 +52,13 @@ const noServe = () => {
 
 const moveToNewViewPoint = (id) => {
   viewListId.value = id;
-  randomThreeItems.value = getRandomItemsFromArray(allViewPoint, 3);
+  loadViewData(id);
+  refreshRandomItems();
 };
 </script>
 
 <template>
-  <div class="max-w-[1232px] mx-auto overflow-hidden">
+  <div v-if="renderViewData" class="max-w-[1232px] mx-auto overflow-hidden">
     <div class="pt-3 px-6 xl:px-4">
       <!-- 麵包屑 -->
       <router-link to="/viewList" class="group flex items-center mb-2 md:mb-3">
