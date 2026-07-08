@@ -38,3 +38,33 @@ The F2E 台灣旅遊景點服務，串接交通部 TDX 開放資料，
 - Tourism/TourismApi_ScenicSpot_2240
 
 ```
+
+## 後端 API（server/）
+
+景點資料改由本地 Express 後端提供（原 TDX API 已廢棄）。
+
+### 本機啟動
+
+```bash
+cd server
+npm install
+npm start        # http://localhost:3000
+npm test         # 執行 API 測試
+```
+
+前端 dev server（`npm run dev`）已設定 proxy，`/api` 自動轉發到 `localhost:3000`。
+
+### 端點
+
+- `GET /api/scenic-spots?city=Taipei&top=30` — 依城市查景點
+- `GET /api/scenic-spots/search?keyword=沙灘` — 名稱搜尋
+- `GET /api/scenic-spots/random?count=3` — 隨機推薦（僅含有圖片的景點）
+- `GET /api/scenic-spots/:id` — 單筆景點
+- `GET /api/home-views` — 首頁區域熱門資料
+- `GET /api/cities` — 城市清單
+
+### 雲端部署（Render/Railway）
+
+1. 部署 `server/` 目錄（start command: `npm start`，`PORT` 由平台注入）。
+2. 前端 `.env.production` 的 `VITE_API_BASE` 改為後端網址（例：`https://xxx.onrender.com/api`）後重新 `npm run deploy`。
+3. 免費層有 cold start（閒置後首次請求約需 30 秒喚醒）。
