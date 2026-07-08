@@ -16,4 +16,9 @@ export default defineConfig({
       '@components': resolve(__dirname, 'src/components'),
     },
   },
+  server: {
+    proxy: {
+      '/api': 'http://localhost:3000',
+    },
+  },
 })
