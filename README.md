@@ -63,6 +63,11 @@ npm test         # 執行 API 測試
 - `GET /api/home-views` — 首頁區域熱門資料
 - `GET /api/cities` — 城市清單
 
+### API 文件（Swagger）
+
+後端啟動後開啟 [http://localhost:3000/api-docs](http://localhost:3000/api-docs) 可瀏覽互動式 Swagger UI；
+原始 OpenAPI 3.0 spec 在 `GET /api/openapi.json`（定義檔：`server/openapi.js`）。
+
 ### 雲端部署（Render/Railway）
 
 1. 部署 `server/` 目錄（start command: `npm start`，`PORT` 由平台注入）。

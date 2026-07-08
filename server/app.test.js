@@ -75,3 +75,18 @@ test('GET /api/cities 回傳城市清單', async () => {
   assert.equal(status, 200)
   assert.ok(body.some(c => c.City === 'Taipei' && c.CityName === '臺北市'))
 })
+
+test('GET /api/openapi.json 回傳 OpenAPI spec', async () => {
+  const {status, body} = await getJson('/api/openapi.json')
+  assert.equal(status, 200)
+  assert.equal(body.openapi, '3.0.3')
+  assert.ok(body.paths['/api/scenic-spots'])
+  assert.equal(Object.keys(body.paths).length, 6)
+})
+
+test('GET /api-docs 提供 Swagger UI 頁面', async () => {
+  const res = await fetch(base + '/api-docs/')
+  assert.equal(res.status, 200)
+  const html = await res.text()
+  assert.ok(html.includes('swagger-ui'))
+})

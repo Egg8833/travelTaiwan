@@ -1,8 +1,10 @@
 import express from 'express'
 import cors from 'cors'
+import swaggerUi from 'swagger-ui-express'
 import {readFileSync} from 'fs'
 import {fileURLToPath} from 'url'
 import {dirname, join} from 'path'
+import openapiSpec from './openapi.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const load = name =>
@@ -51,5 +53,9 @@ app.get('/api/scenic-spots/:id', (req, res) => {
 app.get('/api/home-views', (req, res) => res.json(homeViewPoint))
 
 app.get('/api/cities', (req, res) => res.json(cityList))
+
+app.get('/api/openapi.json', (req, res) => res.json(openapiSpec))
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openapiSpec))
 
 export default app
