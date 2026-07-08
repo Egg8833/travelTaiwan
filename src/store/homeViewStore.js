@@ -17,7 +17,14 @@ export const useHomeViewStore = defineStore('homeView', () => {
       alert('請輸入景點名稱')
       return
     }
-    const data = await searchViewApi(name)
+    let data
+    try {
+      data = await searchViewApi(name)
+    } catch (e) {
+      console.error(e)
+      alert('查詢失敗，請稍後再試')
+      return
+    }
     if (data.length === 0) {
       alert('查無相關景點資訊')
       travelName.value = ''
@@ -29,8 +36,12 @@ export const useHomeViewStore = defineStore('homeView', () => {
   }
 
   const refreshRandomItems = async (count = 3) => {
-    const data = await getRandomViewApi(count)
-    randomThreeItems.value = processViewData(data)
+    try {
+      const data = await getRandomViewApi(count)
+      randomThreeItems.value = processViewData(data)
+    } catch (e) {
+      console.error(e)
+    }
   }
   refreshRandomItems()
 
