@@ -29,7 +29,7 @@ const cardData = computed(() => props.cardData);
     <div class="relative inline-block mb-2">
       <img
         :src="getImagePath(cardData.photoSrc)"
-        class="object-cover w-[300px] h-[168px]"
+        class="object-cover w-[274px] h-[168px]"
       />
       <div
         class="absolute top-2 right-2 flex items-center justify-center w-10 h-10 bg-white border-[#28DAA5] rounded-full border-1 border-solid"
@@ -41,7 +41,7 @@ const cardData = computed(() => props.cardData);
       {{ cardData.title }}
     </h3>
     <satisfaction :startNum="cardData.startNum"></satisfaction>
-    <div class="pt-2 gap-2 flex">
+    <div class="pt-2 gap-2 flex min-h-[36px]">
       <button v-for="(tag, index) in cardData.tagText" :key="index" class="tag">
         {{ tag }}
       </button>
