@@ -11,7 +11,7 @@ import { useHomeViewStore } from "@/store/homeViewStore";
 import processViewData from "@/common/processList.js";
 import { getViewByIdApi } from "@/api/index.js";
 const homeViewStore = useHomeViewStore();
-const { filteredData, haveSearchTravel, randomThreeItems } =
+const { randomThreeItems } =
   storeToRefs(homeViewStore);
 const { refreshRandomItems } = homeViewStore;
 

@@ -5,7 +5,6 @@ import HotView from "@/components/homeView/HotView.vue";
 import HotCheckInPoint from "@/components/homeView/HotCheckInPoint.vue";
 import { storeToRefs } from "pinia";
 import { useHomeViewStore } from "@/store/homeViewStore";
-import allViewPoint from "@/assets/data/allViewPoint.json";
 
 const homeViewStore = useHomeViewStore();
 const { travelName, randomThreeItems } = storeToRefs(homeViewStore);
