@@ -35,15 +35,18 @@ const getSelectCityData = () => {
     return;
   }
   setCityName(selectCity.value);
+  getViewsStoreData();
 };
-const renderData = computed(() => {
-  if (haveSearchTravel.value) {
-    return filteredData.value;
-  } else {
-    getViewsStoreData(selectCity.value);
-    return viewData.value;
+
+onMounted(() => {
+  if (!haveSearchTravel.value) {
+    getViewsStoreData();
   }
 });
+
+const renderData = computed(() =>
+  haveSearchTravel.value ? filteredData.value : viewData.value
+);
 </script>
 
 <template>
