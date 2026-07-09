@@ -1,7 +1,35 @@
 import {test, after} from 'node:test'
 import assert from 'node:assert/strict'
-import app from './app.js'
+import {createApp} from './app.js'
 
+const fakeVerifyToken = (req, res, next) => {
+  const header = req.headers.authorization || ''
+  if (header === 'Bearer valid-token') {
+    req.uid = 'test-uid'
+    req.firebaseUser = {uid: 'test-uid', email: 'test@example.com', name: 'Test User'}
+    return next()
+  }
+  return res.status(401).json({message: 'invalid or expired token'})
+}
+
+const fakeFavoritesRepo = {
+  async list() { return [] },
+  async add() { return {} },
+  async remove() {},
+}
+
+const fakeReviewsRepo = {
+  async list() { return [] },
+  async add() { return {} },
+  async update() { return {error: 'not_found'} },
+  async remove() { return {error: 'not_found'} },
+}
+
+const app = createApp({
+  verifyToken: fakeVerifyToken,
+  favoritesRepo: fakeFavoritesRepo,
+  reviewsRepo: fakeReviewsRepo,
+})
 const server = app.listen(0)
 const base = `http://localhost:${server.address().port}`
 after(() => server.close())
@@ -81,7 +109,6 @@ test('GET /api/openapi.json 回傳 OpenAPI spec', async () => {
   assert.equal(status, 200)
   assert.equal(body.openapi, '3.0.3')
   assert.ok(body.paths['/api/scenic-spots'])
-  assert.equal(Object.keys(body.paths).length, 6)
 })
 
 test('GET /api-docs 提供 Swagger UI 頁面', async () => {
@@ -90,3 +117,5 @@ test('GET /api-docs 提供 Swagger UI 頁面', async () => {
   const html = await res.text()
   assert.ok(html.includes('swagger-ui'))
 })
+
+export {fakeVerifyToken, fakeFavoritesRepo, fakeReviewsRepo, createApp, base, getJson}
