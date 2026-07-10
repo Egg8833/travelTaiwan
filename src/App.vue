@@ -10,12 +10,29 @@
 </template>
 
 <script setup>
-import { onMounted } from "vue";
+import { onMounted, watch } from "vue";
 import Header from "./components/header.vue";
 import Footer from "./components/Footer.vue";
 import WOW from "wow.js";
 import "animate.css";
 import { useHead } from "@vueuse/head";
+import { useAuthStore } from "@/store/authStore";
+import { useFavoriteStore } from "@/store/favoriteStore";
+
+const authStore = useAuthStore();
+const favoriteStore = useFavoriteStore();
+
+watch(
+  () => authStore.user,
+  (newUser) => {
+    if (newUser) {
+      favoriteStore.fetchFavorites();
+    } else {
+      favoriteStore.favoriteIds = new Set();
+      favoriteStore.favoriteList = [];
+    }
+  }
+);
 
 useHead({
   title: "島遊",
