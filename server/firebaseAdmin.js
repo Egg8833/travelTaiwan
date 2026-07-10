@@ -1,13 +1,15 @@
-import admin from 'firebase-admin'
+import {cert, getApps, initializeApp} from 'firebase-admin/app'
+import {getAuth} from 'firebase-admin/auth'
+import {getFirestore} from 'firebase-admin/firestore'
 
 function initializeIfNeeded() {
-  if (admin.apps.length) return
+  if (getApps().length) return
   const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON
   if (!serviceAccountJson) {
     throw new Error('FIREBASE_SERVICE_ACCOUNT_JSON env var is required')
   }
-  admin.initializeApp({
-    credential: admin.credential.cert(JSON.parse(serviceAccountJson)),
+  initializeApp({
+    credential: cert(JSON.parse(serviceAccountJson)),
   })
 }
 
@@ -22,5 +24,5 @@ function lazy(getReal) {
   })
 }
 
-export const auth = lazy(() => admin.auth())
-export const firestore = lazy(() => admin.firestore())
+export const auth = lazy(() => getAuth())
+export const firestore = lazy(() => getFirestore())
