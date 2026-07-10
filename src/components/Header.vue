@@ -10,6 +10,9 @@ const homeViewStore = useHomeViewStore();
 const { travelName } = storeToRefs(homeViewStore);
 const { searchTravel } = homeViewStore;
 
+import { useAuthStore } from "@/store/authStore";
+const authStore = useAuthStore();
+
 const menuListShow = ref(false);
 const is960Width = computed(() => {
   windowWidth.value >= 960
@@ -106,12 +109,12 @@ watch(route, (newRoute) => {
             </a>
           </li> -->
           <li>
-            <a
-              href="#"
+            <router-link
+              :to="authStore.user ? { name: 'myJourney' } : { name: 'login' }"
               class="flex gap-x-2 py-3 px-5 rounded-[62px] font-500 text-[#fff] bg-[#1FB588] hover:bg-[#588E6B]"
             >
-              我的旅程
-            </a>
+              {{ authStore.user ? "我的旅程" : "登入" }}
+            </router-link>
           </li>
         </ul>
       </div>
