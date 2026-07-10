@@ -12,10 +12,20 @@ const fakeVerifyToken = (req, res, next) => {
   return res.status(401).json({message: 'invalid or expired token'})
 }
 
+const favoritesStore = new Map() // uid -> Map(spotId -> data)
 const fakeFavoritesRepo = {
-  async list() { return [] },
-  async add() { return {} },
-  async remove() {},
+  async list(uid) {
+    return [...(favoritesStore.get(uid) || new Map()).values()]
+  },
+  async add(uid, spotId, {spotName, pictureUrl}) {
+    if (!favoritesStore.has(uid)) favoritesStore.set(uid, new Map())
+    const data = {spotId, spotName, pictureUrl, addedAt: new Date().toISOString()}
+    favoritesStore.get(uid).set(spotId, data)
+    return data
+  },
+  async remove(uid, spotId) {
+    favoritesStore.get(uid)?.delete(spotId)
+  },
 }
 
 const fakeReviewsRepo = {
@@ -109,6 +119,45 @@ test('GET /api/openapi.json 回傳 OpenAPI spec', async () => {
   assert.equal(status, 200)
   assert.equal(body.openapi, '3.0.3')
   assert.ok(body.paths['/api/scenic-spots'])
+})
+
+test('GET /api/favorites 未帶 token 回 401', async () => {
+  const {status} = await getJson('/api/favorites')
+  assert.equal(status, 401)
+})
+
+test('POST → GET → DELETE /api/favorites 完整流程', async () => {
+  const authHeaders = {headers: {Authorization: 'Bearer valid-token', 'Content-Type': 'application/json'}}
+
+  const postRes = await fetch(base + '/api/favorites/spot-1', {
+    method: 'POST',
+    ...authHeaders,
+    body: JSON.stringify({spotName: '國立故宮博物院', pictureUrl: 'http://example.com/a.jpg'}),
+  })
+  assert.equal(postRes.status, 201)
+  const posted = await postRes.json()
+  assert.equal(posted.spotId, 'spot-1')
+
+  const listRes = await fetch(base + '/api/favorites', {headers: authHeaders.headers})
+  assert.equal(listRes.status, 200)
+  const list = await listRes.json()
+  assert.ok(list.some(f => f.spotId === 'spot-1'))
+
+  const deleteRes = await fetch(base + '/api/favorites/spot-1', {method: 'DELETE', headers: authHeaders.headers})
+  assert.equal(deleteRes.status, 204)
+
+  const listRes2 = await fetch(base + '/api/favorites', {headers: authHeaders.headers})
+  const list2 = await listRes2.json()
+  assert.ok(!list2.some(f => f.spotId === 'spot-1'))
+})
+
+test('POST /api/favorites/:spotId 缺 spotName 回 400', async () => {
+  const res = await fetch(base + '/api/favorites/spot-2', {
+    method: 'POST',
+    headers: {Authorization: 'Bearer valid-token', 'Content-Type': 'application/json'},
+    body: JSON.stringify({}),
+  })
+  assert.equal(res.status, 400)
 })
 
 test('GET /api-docs 提供 Swagger UI 頁面', async () => {
