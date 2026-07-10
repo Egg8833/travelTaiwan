@@ -4,6 +4,7 @@ import {useRouter} from "vue-router";
 import card from "@/components/card.vue";
 import {useAuthStore} from "@/store/authStore.js";
 import {useFavoriteStore} from "@/store/favoriteStore.js";
+import noImage from "@/assets/images/empty-img.png";
 
 const authStore = useAuthStore();
 const favoriteStore = useFavoriteStore();
@@ -18,13 +19,19 @@ const logout = async () => {
   router.push({name: "home"});
 };
 
-const toCardData = fav => ({
-  id: fav.spotId,
-  title: fav.spotName,
-  photoSrc: [fav.pictureUrl].filter(Boolean),
-  tagText: [],
-  startNum: 0,
-});
+const toCardData = fav => {
+  const photoSrc = [fav.pictureUrl].filter(Boolean);
+  if (photoSrc.length === 0) {
+    photoSrc.push(noImage);
+  }
+  return {
+    id: fav.spotId,
+    title: fav.spotName,
+    photoSrc,
+    tagText: [],
+    startNum: 0,
+  };
+};
 </script>
 
 <template>
