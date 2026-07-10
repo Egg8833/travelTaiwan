@@ -73,3 +73,37 @@ npm test         # 執行 API 測試
 1. 部署 `server/` 目錄（start command: `npm start`，`PORT` 由平台注入）。
 2. 前端 `.env.production` 的 `VITE_API_BASE` 改為後端網址（例：`https://xxx.onrender.com/api`）後重新 `npm run deploy`。
 3. 免費層有 cold start（閒置後首次請求約需 30 秒喚醒）。
+
+## 會員登入、收藏、評論
+
+新增功能需要 Firebase 專案（Authentication + Firestore）。完整設定步驟見
+`docs/superpowers/specs/2026-07-09-member-auth-favorites-reviews-design.md` 與對應的
+`docs/superpowers/plans/2026-07-09-member-auth-favorites-reviews.md` Task 1。
+
+### 本機開發所需環境變數
+
+前端 `.env`（不進版控）：
+
+```
+VITE_FIREBASE_API_KEY=
+VITE_FIREBASE_AUTH_DOMAIN=
+VITE_FIREBASE_PROJECT_ID=
+VITE_FIREBASE_STORAGE_BUCKET=
+VITE_FIREBASE_MESSAGING_SENDER_ID=
+VITE_FIREBASE_APP_ID=
+```
+
+後端 `server/.env`（不進版控）：
+
+```
+FIREBASE_SERVICE_ACCOUNT_JSON={...Firebase 服務帳戶 JSON，單行...}
+```
+
+### 種子評論資料
+
+首次部署後執行一次（需要 `server/.env` 設定完成）：
+
+```bash
+cd server
+node --env-file=.env scripts/seedReviews.js
+```
