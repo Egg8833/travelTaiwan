@@ -143,6 +143,7 @@ test('GET /api/openapi.json 回傳 OpenAPI spec', async () => {
   assert.equal(status, 200)
   assert.equal(body.openapi, '3.0.3')
   assert.ok(body.paths['/api/scenic-spots'])
+  assert.equal(Object.keys(body.paths).length, 11)
 })
 
 test('GET /api/favorites 未帶 token 回 401', async () => {

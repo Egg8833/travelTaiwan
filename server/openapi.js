@@ -39,6 +39,30 @@ const errorSchema = {
   },
 }
 
+const favoriteSchema = {
+  type: 'object',
+  properties: {
+    spotId: {type: 'string', example: 'VCA_315080500H_000015'},
+    spotName: {type: 'string', example: '國立故宮博物院'},
+    pictureUrl: {type: 'string', nullable: true},
+    addedAt: {type: 'string', format: 'date-time'},
+  },
+}
+
+const reviewSchema = {
+  type: 'object',
+  properties: {
+    id: {type: 'string'},
+    uid: {type: 'string', nullable: true},
+    authorName: {type: 'string', example: '旅人A'},
+    rating: {type: 'integer', minimum: 1, maximum: 5},
+    content: {type: 'string'},
+    isSeed: {type: 'boolean'},
+    createdAt: {type: 'string', format: 'date-time'},
+    updatedAt: {type: 'string', format: 'date-time', nullable: true},
+  },
+}
+
 const scenicSpotArray = {
   'application/json': {
     schema: {type: 'array', items: {$ref: '#/components/schemas/ScenicSpot'}},
@@ -57,6 +81,8 @@ export default {
   tags: [
     {name: 'ScenicSpot', description: '景點查詢'},
     {name: 'Misc', description: '其他資料'},
+    {name: 'Member', description: '會員與收藏（需登入）'},
+    {name: 'Review', description: '景點評論'},
   ],
   paths: {
     '/api/scenic-spots': {
@@ -223,11 +249,168 @@ export default {
         },
       },
     },
+    '/api/auth/me': {
+      get: {
+        tags: ['Member'],
+        summary: '取得目前登入者資訊',
+        security: [{bearerAuth: []}],
+        responses: {
+          200: {
+            description: '登入者基本資訊',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    uid: {type: 'string'},
+                    email: {type: 'string'},
+                    displayName: {type: 'string', nullable: true},
+                  },
+                },
+              },
+            },
+          },
+          401: {description: '未登入或 Token 無效', content: {'application/json': {schema: {$ref: '#/components/schemas/Error'}}}},
+        },
+      },
+    },
+    '/api/favorites': {
+      get: {
+        tags: ['Member'],
+        summary: '取得目前使用者的收藏清單',
+        security: [{bearerAuth: []}],
+        responses: {
+          200: {description: '收藏陣列', content: {'application/json': {schema: {type: 'array', items: {$ref: '#/components/schemas/Favorite'}}}}},
+          401: {description: '未登入或 Token 無效', content: {'application/json': {schema: {$ref: '#/components/schemas/Error'}}}},
+        },
+      },
+    },
+    '/api/favorites/{spotId}': {
+      post: {
+        tags: ['Member'],
+        summary: '新增收藏',
+        security: [{bearerAuth: []}],
+        parameters: [{name: 'spotId', in: 'path', required: true, schema: {type: 'string'}}],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['spotName'],
+                properties: {spotName: {type: 'string'}, pictureUrl: {type: 'string'}},
+              },
+            },
+          },
+        },
+        responses: {
+          201: {description: '已收藏', content: {'application/json': {schema: {$ref: '#/components/schemas/Favorite'}}}},
+          400: {description: '缺少 spotName', content: {'application/json': {schema: {$ref: '#/components/schemas/Error'}}}},
+          401: {description: '未登入或 Token 無效', content: {'application/json': {schema: {$ref: '#/components/schemas/Error'}}}},
+        },
+      },
+      delete: {
+        tags: ['Member'],
+        summary: '取消收藏',
+        security: [{bearerAuth: []}],
+        parameters: [{name: 'spotId', in: 'path', required: true, schema: {type: 'string'}}],
+        responses: {
+          204: {description: '已取消收藏'},
+          401: {description: '未登入或 Token 無效', content: {'application/json': {schema: {$ref: '#/components/schemas/Error'}}}},
+        },
+      },
+    },
+    '/api/reviews/{spotId}': {
+      get: {
+        tags: ['Review'],
+        summary: '取得該景點評論列表',
+        parameters: [{name: 'spotId', in: 'path', required: true, schema: {type: 'string'}}],
+        responses: {
+          200: {description: '評論陣列', content: {'application/json': {schema: {type: 'array', items: {$ref: '#/components/schemas/Review'}}}}},
+        },
+      },
+      post: {
+        tags: ['Review'],
+        summary: '新增評論',
+        security: [{bearerAuth: []}],
+        parameters: [{name: 'spotId', in: 'path', required: true, schema: {type: 'string'}}],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['rating', 'content'],
+                properties: {
+                  rating: {type: 'integer', minimum: 1, maximum: 5},
+                  content: {type: 'string'},
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          201: {description: '已新增', content: {'application/json': {schema: {$ref: '#/components/schemas/Review'}}}},
+          400: {description: '缺少或不合法的欄位', content: {'application/json': {schema: {$ref: '#/components/schemas/Error'}}}},
+          401: {description: '未登入或 Token 無效', content: {'application/json': {schema: {$ref: '#/components/schemas/Error'}}}},
+        },
+      },
+    },
+    '/api/reviews/{spotId}/{reviewId}': {
+      patch: {
+        tags: ['Review'],
+        summary: '編輯自己的評論',
+        security: [{bearerAuth: []}],
+        parameters: [
+          {name: 'spotId', in: 'path', required: true, schema: {type: 'string'}},
+          {name: 'reviewId', in: 'path', required: true, schema: {type: 'string'}},
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['rating', 'content'],
+                properties: {
+                  rating: {type: 'integer', minimum: 1, maximum: 5},
+                  content: {type: 'string'},
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: {description: '已更新', content: {'application/json': {schema: {$ref: '#/components/schemas/Review'}}}},
+          403: {description: '不是自己的評論', content: {'application/json': {schema: {$ref: '#/components/schemas/Error'}}}},
+          404: {description: '評論不存在', content: {'application/json': {schema: {$ref: '#/components/schemas/Error'}}}},
+        },
+      },
+      delete: {
+        tags: ['Review'],
+        summary: '刪除自己的評論',
+        security: [{bearerAuth: []}],
+        parameters: [
+          {name: 'spotId', in: 'path', required: true, schema: {type: 'string'}},
+          {name: 'reviewId', in: 'path', required: true, schema: {type: 'string'}},
+        ],
+        responses: {
+          204: {description: '已刪除'},
+          403: {description: '不是自己的評論', content: {'application/json': {schema: {$ref: '#/components/schemas/Error'}}}},
+          404: {description: '評論不存在', content: {'application/json': {schema: {$ref: '#/components/schemas/Error'}}}},
+        },
+      },
+    },
   },
   components: {
+    securitySchemes: {
+      bearerAuth: {type: 'http', scheme: 'bearer', bearerFormat: 'Firebase ID Token'},
+    },
     schemas: {
       ScenicSpot: scenicSpotSchema,
       Error: errorSchema,
+      Favorite: favoriteSchema,
+      Review: reviewSchema,
     },
   },
 }
