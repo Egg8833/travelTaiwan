@@ -139,7 +139,9 @@ const moveToNewViewPoint = (id) => {
           {{ renderViewData.title }}
         </h4>
         <div class="flex gap-2">
-          <div
+          <a
+            v-if="renderViewData.phone"
+            :href="`tel:${renderViewData.phone}`"
             class="flex items-center justify-center w-[30px] h-[30px] rounded-full border-1 border-solid border-[#1Fb588]"
           >
             <img
@@ -147,8 +149,12 @@ const moveToNewViewPoint = (id) => {
               alt="phone"
               class="w-[18px]"
             />
-          </div>
-          <div
+          </a>
+          <a
+            v-if="renderViewData.websiteUrl"
+            :href="renderViewData.websiteUrl"
+            target="_blank"
+            rel="noopener"
             class="flex items-center justify-center w-[30px] h-[30px] rounded-full border-1 border-solid border-[#1Fb588]"
           >
             <img
@@ -156,7 +162,7 @@ const moveToNewViewPoint = (id) => {
               alt="web"
               class="w-[18px]"
             />
-          </div>
+          </a>
           <div
             class="flex items-center justify-center w-[30px] h-[30px] rounded-full border-1 border-solid border-[#1Fb588] cursor-pointer"
             @click="toggleFavoriteOnPage"
@@ -246,16 +252,20 @@ const moveToNewViewPoint = (id) => {
       <div class="pt-8 grid gap-8">
         <div>
           <h4 class="text-[#188E6B] font-700 text-[24px] pb-2 md:text-[32px]">
-            服務設施
+            聯絡資訊
           </h4>
           <ul class="flex gap-2 flex-col">
-            <li class="flex items-center gap-2">
-              <span>服務處</span>
-              <img src="../assets/images/icon/check.svg" alt="" />
+            <li v-if="renderViewData.phone" class="flex items-center gap-2">
+              <span>電話：</span>
+              <a :href="`tel:${renderViewData.phone}`" class="text-[#1FB588] underline">{{ renderViewData.phone }}</a>
+            </li>
+            <li v-if="renderViewData.websiteUrl" class="flex items-center gap-2">
+              <span>官網：</span>
+              <a :href="renderViewData.websiteUrl" target="_blank" rel="noopener" class="text-[#1FB588] underline">官方網站</a>
             </li>
             <li class="flex items-center gap-2">
-              <span>公共廁所</span>
-              <img src="../assets/images/icon/check.svg" alt="" />
+              <span>停車資訊：</span>
+              <span>{{ renderViewData.hasParking ? "有停車資訊" : "無停車資訊" }}</span>
             </li>
           </ul>
         </div>
