@@ -3,17 +3,29 @@ import { computed, onMounted, ref, watch } from "vue";
 import card from "../components/card.vue";
 import satisfaction from "../components/satisfaction.vue";
 import ArticleToggle from "../components/ArticleToggle.vue";
-import { useRoute } from "vue-router";
+import StarRatingInput from "../components/StarRatingInput.vue";
+import { useRoute, useRouter } from "vue-router";
 
 import { getImagePath } from "@/common/useImage";
 import { storeToRefs } from "pinia";
 import { useHomeViewStore } from "@/store/homeViewStore";
+import { useAuthStore } from "@/store/authStore";
+import { useFavoriteStore } from "@/store/favoriteStore";
+import { useReviewStore } from "@/store/reviewStore";
 import processViewData from "@/common/processList.js";
 import { getViewByIdApi } from "@/api/index.js";
+import heartOutline from "../assets/images/icon/heart-outline.svg";
+import heartFilled from "../assets/images/icon/heart-filled.svg";
+
 const homeViewStore = useHomeViewStore();
 const { randomThreeItems } =
   storeToRefs(homeViewStore);
 const { refreshRandomItems } = homeViewStore;
+
+const authStore = useAuthStore();
+const favoriteStore = useFavoriteStore();
+const reviewStore = useReviewStore();
+const router = useRouter();
 
 // 優化建議 進入頁面後把資料存入到localstrorage
 
@@ -30,21 +42,74 @@ const loadViewData = async (id) => {
   }
 };
 loadViewData(viewListId.value);
+reviewStore.fetchReviews(viewListId.value);
 
-const commitList = ref([
-  {
-    title: "不錯的景點",
-    txt: "風景好視野開闊，看海看山看夕陽。黃昏時分人潮眾多。休閒放鬆的好去處。",
-  },
-  {
-    title: "悠閒放鬆的好地方",
-    txt: "若有閒暇時間，非常適合放慢腳步，坐於岸邊品嚐各式美食，享受一下晝與夜的美景。",
-  },
-  {
-    title: "人潮多，避開人群",
-    txt: "建議平日造訪，假日太多人，旅遊品質會下降。平日早訪，會有比較好的旅遊品質",
-  },
-]);
+const isFavorited = computed(() =>
+  renderViewData.value ? favoriteStore.favoriteIds.has(renderViewData.value.id) : false
+);
+
+const toggleFavoriteOnPage = () => {
+  if (!authStore.user) {
+    router.push({ name: "login" });
+    return;
+  }
+  favoriteStore.toggleFavorite(renderViewData.value);
+};
+
+const averageRating = computed(() => {
+  if (reviewStore.reviews.length === 0) return 0;
+  const sum = reviewStore.reviews.reduce((acc, r) => acc + r.rating, 0);
+  return Math.round((sum / reviewStore.reviews.length) * 10) / 10;
+});
+
+const newReviewRating = ref(0);
+const newReviewContent = ref("");
+
+const submitReview = async () => {
+  if (newReviewRating.value === 0) {
+    alert("請選擇星等");
+    return;
+  }
+  if (!newReviewContent.value.trim()) {
+    alert("請輸入評論內容");
+    return;
+  }
+  const ok = await reviewStore.addReview(viewListId.value, {
+    rating: newReviewRating.value,
+    content: newReviewContent.value,
+  });
+  if (ok) {
+    newReviewRating.value = 0;
+    newReviewContent.value = "";
+  }
+};
+
+const editingReviewId = ref(null);
+const editRating = ref(0);
+const editContent = ref("");
+
+const startEdit = (review) => {
+  editingReviewId.value = review.id;
+  editRating.value = review.rating;
+  editContent.value = review.content;
+};
+
+const cancelEdit = () => {
+  editingReviewId.value = null;
+};
+
+const saveEdit = async (reviewId) => {
+  const ok = await reviewStore.updateReview(viewListId.value, reviewId, {
+    rating: editRating.value,
+    content: editContent.value,
+  });
+  if (ok) editingReviewId.value = null;
+};
+
+const removeReview = async (reviewId) => {
+  if (!confirm("確定要刪除這則評論嗎？")) return;
+  await reviewStore.deleteReview(viewListId.value, reviewId);
+};
 
 const noServe = () => {
   alert("此服務尚未開啟,敬請期待");
@@ -54,6 +119,7 @@ const moveToNewViewPoint = (id) => {
   viewListId.value = id;
   loadViewData(id);
   refreshRandomItems();
+  reviewStore.fetchReviews(id);
 };
 </script>
 
@@ -92,10 +158,11 @@ const moveToNewViewPoint = (id) => {
             />
           </div>
           <div
-            class="flex items-center justify-center w-[30px] h-[30px] rounded-full border-1 border-solid border-[#1Fb588]"
+            class="flex items-center justify-center w-[30px] h-[30px] rounded-full border-1 border-solid border-[#1Fb588] cursor-pointer"
+            @click="toggleFavoriteOnPage"
           >
             <img
-              src="../assets/images/icon/heart-outline.svg"
+              :src="isFavorited ? heartFilled : heartOutline"
               alt="heart"
               class="w-[18px]"
             />
@@ -292,56 +359,72 @@ const moveToNewViewPoint = (id) => {
             旅客評價
           </h4>
           <div class="flex items-center gap-2">
-            <p class="text-[30px] text-[#434343] font-700">3</p>
+            <p class="text-[30px] text-[#434343] font-700">{{ averageRating || "–" }}</p>
             <satisfaction
-              :startNum="3"
+              :startNum="Math.round(averageRating)"
               :commit="true"
-              :commitNum="234"
+              :commitNum="reviewStore.reviews.length"
             ></satisfaction>
-            <div
-              class="ml-auto flex items-center justify-center w-[32px] h-[32px] rounded-full border-1 border-solid border-[#1Fb588]"
-            >
-              <img
-                src="../assets/images/icon/sort.svg"
-                alt=""
-                class="w-[18px] h-[18px]"
-              />
-            </div>
           </div>
         </div>
+
+        <div class="pt-6 pb-6 border-b border-b-solid border-[#eee]">
+          <div v-if="authStore.user">
+            <p class="font-700 text-[#434343] mb-2">留下你的評論</p>
+            <StarRatingInput v-model="newReviewRating" />
+            <textarea
+              v-model="newReviewContent"
+              rows="3"
+              class="w-full mt-2 rounded-[8px] border-1 border-solid border-[#eee] py-2 px-4"
+              placeholder="分享你的旅遊心得..."
+            ></textarea>
+            <button class="btn mt-2" @click="submitReview">送出評論</button>
+          </div>
+          <div v-else>
+            <router-link :to="{ name: 'login' }" class="text-[#1FB588] underline">
+              登入後即可留言
+            </router-link>
+          </div>
+        </div>
+
         <div>
-          <!-- 評價區塊 -->
-          <div v-for="(i, index) in commitList" :key="i">
+          <div v-for="review in reviewStore.reviews" :key="review.id">
             <div class="pt-4 flex items-end">
-              <img
-                src="../assets/images/people.png"
-                alt=""
-                v-if="index === 0"
-              />
-              <div
-                v-if="index !== 0"
-                class="w-10 h-10 rounded-full bg-[#208080]"
-              ></div>
+              <div class="w-10 h-10 rounded-full bg-[#208080]"></div>
               <p class="ml-2 text-[18px] font-700 text-[#434343]">
-                {{ i.title }}
+                {{ review.authorName }}
               </p>
               <div class="ml-auto">
-                <satisfaction :startNum="3"></satisfaction>
+                <satisfaction :startNum="review.rating"></satisfaction>
               </div>
             </div>
-            <div
-              class="pt-4 pb-6 border-b border-b-solid border-[#eee]"
-              :class="{ 'border-b-0': index + 1 === 3 }"
-            >
-              <p class="leading-6">
-                {{ i.txt }}
-              </p>
+            <div class="pt-4 pb-6 border-b border-b-solid border-[#eee]">
+              <div v-if="editingReviewId === review.id">
+                <StarRatingInput v-model="editRating" />
+                <textarea
+                  v-model="editContent"
+                  rows="3"
+                  class="w-full mt-2 rounded-[8px] border-1 border-solid border-[#eee] py-2 px-4"
+                ></textarea>
+                <div class="flex gap-2 mt-2">
+                  <button class="btn" @click="saveEdit(review.id)">儲存</button>
+                  <button class="btn-secondary" @click="cancelEdit">取消</button>
+                </div>
+              </div>
+              <div v-else>
+                <p class="leading-6">{{ review.content }}</p>
+                <div v-if="authStore.user?.uid === review.uid" class="flex gap-2 mt-2">
+                  <button class="text-[#1FB588] underline" @click="startEdit(review)">編輯</button>
+                  <button class="text-[#EB5757] underline" @click="removeReview(review.id)">刪除</button>
+                </div>
+              </div>
             </div>
           </div>
-          <div class="flex justify-center pt-7 pb-10">
-            <button class="btn" @click="noServe">查看更多</button>
-          </div>
+          <p v-if="reviewStore.reviews.length === 0" class="text-[#808080] py-6">
+            還沒有評論，成為第一個留言的人吧！
+          </p>
         </div>
+
         <div class="pb-10">
           <h4 class="text-[#188E6B] font-700 text-[24px] pb-4 md:text-[32px]">
             這些景點大家也推薦
@@ -349,7 +432,6 @@ const moveToNewViewPoint = (id) => {
           <div
             class="flex justify-center flex-col gap-4 items-center md:grid md:grid-cols-3 md:gap-6"
           >
-            <!-- v-for="data in randomThreeItems" -->
             <router-link
               @click="moveToNewViewPoint(data.id)"
               v-for="data in randomThreeItems"
