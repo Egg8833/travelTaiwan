@@ -40,7 +40,7 @@ const onHeartClick = () => {
       />
       <div
         class="absolute top-2 right-2 flex items-center justify-center w-10 h-10 bg-white border-[#28DAA5] rounded-full border-1 border-solid cursor-pointer"
-        @click="onHeartClick"
+        @click.stop="onHeartClick"
       >
         <img :src="favoriteIcon" alt="heart" />
       </div>
