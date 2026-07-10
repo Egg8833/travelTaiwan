@@ -28,11 +28,35 @@ const fakeFavoritesRepo = {
   },
 }
 
+const reviewsStore = new Map() // spotId -> Map(reviewId -> data)
+let nextReviewId = 1
 const fakeReviewsRepo = {
-  async list() { return [] },
-  async add() { return {} },
-  async update() { return {error: 'not_found'} },
-  async remove() { return {error: 'not_found'} },
+  async list(spotId) {
+    return [...(reviewsStore.get(spotId) || new Map()).values()]
+  },
+  async add(spotId, {uid, authorName, rating, content}) {
+    if (!reviewsStore.has(spotId)) reviewsStore.set(spotId, new Map())
+    const id = String(nextReviewId++)
+    const data = {id, uid, authorName, rating, content, isSeed: false, createdAt: new Date().toISOString(), updatedAt: null}
+    reviewsStore.get(spotId).set(id, data)
+    return data
+  },
+  async update(spotId, reviewId, uid, {rating, content}) {
+    const entry = reviewsStore.get(spotId)?.get(reviewId)
+    if (!entry) return {error: 'not_found'}
+    if (entry.uid !== uid) return {error: 'forbidden'}
+    entry.rating = rating
+    entry.content = content
+    entry.updatedAt = new Date().toISOString()
+    return entry
+  },
+  async remove(spotId, reviewId, uid) {
+    const entry = reviewsStore.get(spotId)?.get(reviewId)
+    if (!entry) return {error: 'not_found'}
+    if (entry.uid !== uid) return {error: 'forbidden'}
+    reviewsStore.get(spotId).delete(reviewId)
+    return {error: null}
+  },
 }
 
 const app = createApp({
@@ -165,6 +189,71 @@ test('GET /api-docs 提供 Swagger UI 頁面', async () => {
   assert.equal(res.status, 200)
   const html = await res.text()
   assert.ok(html.includes('swagger-ui'))
+})
+
+test('GET /api/reviews/:spotId 不需登入，空清單回 200', async () => {
+  const {status, body} = await getJson('/api/reviews/spot-9')
+  assert.equal(status, 200)
+  assert.deepEqual(body, [])
+})
+
+test('POST /api/reviews/:spotId 未帶 token 回 401', async () => {
+  const res = await fetch(base + '/api/reviews/spot-9', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({rating: 5, content: '很棒'}),
+  })
+  assert.equal(res.status, 401)
+})
+
+test('POST /api/reviews/:spotId rating 超出範圍回 400', async () => {
+  const res = await fetch(base + '/api/reviews/spot-9', {
+    method: 'POST',
+    headers: {Authorization: 'Bearer valid-token', 'Content-Type': 'application/json'},
+    body: JSON.stringify({rating: 6, content: '很棒'}),
+  })
+  assert.equal(res.status, 400)
+})
+
+test('新增 → 編輯 → 刪除自己的評論', async () => {
+  const authHeaders = {Authorization: 'Bearer valid-token', 'Content-Type': 'application/json'}
+
+  const postRes = await fetch(base + '/api/reviews/spot-9', {
+    method: 'POST',
+    headers: authHeaders,
+    body: JSON.stringify({rating: 4, content: '景色不錯'}),
+  })
+  assert.equal(postRes.status, 201)
+  const created = await postRes.json()
+  assert.equal(created.rating, 4)
+
+  const patchRes = await fetch(base + `/api/reviews/spot-9/${created.id}`, {
+    method: 'PATCH',
+    headers: authHeaders,
+    body: JSON.stringify({rating: 5, content: '景色非常棒'}),
+  })
+  assert.equal(patchRes.status, 200)
+  const updated = await patchRes.json()
+  assert.equal(updated.rating, 5)
+  assert.equal(updated.content, '景色非常棒')
+
+  const deleteRes = await fetch(base + `/api/reviews/spot-9/${created.id}`, {
+    method: 'DELETE',
+    headers: authHeaders,
+  })
+  assert.equal(deleteRes.status, 204)
+
+  const {body: listAfter} = await getJson('/api/reviews/spot-9')
+  assert.ok(!listAfter.some(r => r.id === created.id))
+})
+
+test('編輯不存在的評論回 404', async () => {
+  const res = await fetch(base + '/api/reviews/spot-9/no-such-id', {
+    method: 'PATCH',
+    headers: {Authorization: 'Bearer valid-token', 'Content-Type': 'application/json'},
+    body: JSON.stringify({rating: 5, content: 'x'}),
+  })
+  assert.equal(res.status, 404)
 })
 
 export {fakeVerifyToken, fakeFavoritesRepo, fakeReviewsRepo, createApp, base, getJson}
