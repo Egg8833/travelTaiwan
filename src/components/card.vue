@@ -1,27 +1,34 @@
 <script setup>
 import satisfaction from "../components/satisfaction.vue";
-import favoriteImg from "../assets/images/icon/heart-outline.svg";
+import heartOutline from "../assets/images/icon/heart-outline.svg";
+import heartFilled from "../assets/images/icon/heart-filled.svg";
 import { computed } from "vue";
+import { useRouter } from "vue-router";
 import { getImagePath } from "@/common/useImage";
+import { useAuthStore } from "@/store/authStore.js";
+import { useFavoriteStore } from "@/store/favoriteStore.js";
 
 const props = defineProps({
   cardData: {
     type: Object,
-    // default: [
-    //   {
-    //     id: Number,
-    //     title: String,
-    //     photoSrc: String,
-    //     favoriteImg: String,
-    //     tagText: Array,
-    //     description: String,
-    //     phone: Number,
-    //     openTime: String,
-    //   },
-    // ],
   },
 });
 const cardData = computed(() => props.cardData);
+
+const router = useRouter();
+const authStore = useAuthStore();
+const favoriteStore = useFavoriteStore();
+
+const isFavorited = computed(() => favoriteStore.favoriteIds.has(cardData.value.id));
+const favoriteIcon = computed(() => (isFavorited.value ? heartFilled : heartOutline));
+
+const onHeartClick = () => {
+  if (!authStore.user) {
+    router.push({name: "login"});
+    return;
+  }
+  favoriteStore.toggleFavorite(cardData.value);
+};
 </script>
 
 <template>
@@ -32,9 +39,10 @@ const cardData = computed(() => props.cardData);
         class="object-cover w-[274px] h-[168px]"
       />
       <div
-        class="absolute top-2 right-2 flex items-center justify-center w-10 h-10 bg-white border-[#28DAA5] rounded-full border-1 border-solid"
+        class="absolute top-2 right-2 flex items-center justify-center w-10 h-10 bg-white border-[#28DAA5] rounded-full border-1 border-solid cursor-pointer"
+        @click="onHeartClick"
       >
-        <img :src="favoriteImg" alt="heart" />
+        <img :src="favoriteIcon" alt="heart" />
       </div>
     </div>
     <h3 class="pb-1 text-[#434343] text-[24px] font-700 truncate">
@@ -57,4 +65,3 @@ const cardData = computed(() => props.cardData);
   box-shadow: 0px 4px 10px 0px #80808033;
 }
 </style>
-
