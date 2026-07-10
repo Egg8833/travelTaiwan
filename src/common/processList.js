@@ -27,6 +27,8 @@ export default function processViewData(dataList) {
       description: e.DescriptionDetail,
       ZipCode: e.ZipCode,
       Address: e.Address,
+      websiteUrl: e.WebsiteUrl || null,
+      hasParking: Object.keys(e.ParkingPosition || {}).length > 0,
     }
   })
 }
