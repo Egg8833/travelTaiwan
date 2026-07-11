@@ -48,6 +48,12 @@ const isFavorited = computed(() =>
   renderViewData.value ? favoriteStore.favoriteIds.has(renderViewData.value.id) : false
 );
 
+const dialPhone = computed(() => {
+  const phone = renderViewData.value?.phone;
+  if (!phone) return null;
+  return phone.split(/[、,，;；]/)[0].trim();
+});
+
 const toggleFavoriteOnPage = () => {
   if (!authStore.user) {
     router.push({ name: "login" });
@@ -141,7 +147,7 @@ const moveToNewViewPoint = (id) => {
         <div class="flex gap-2">
           <a
             v-if="renderViewData.phone"
-            :href="`tel:${renderViewData.phone}`"
+            :href="`tel:${dialPhone}`"
             class="flex items-center justify-center w-[30px] h-[30px] rounded-full border-1 border-solid border-[#1Fb588]"
           >
             <img
@@ -257,7 +263,7 @@ const moveToNewViewPoint = (id) => {
           <ul class="flex gap-2 flex-col">
             <li v-if="renderViewData.phone" class="flex items-center gap-2">
               <span>電話：</span>
-              <a :href="`tel:${renderViewData.phone}`" class="text-[#1FB588] underline">{{ renderViewData.phone }}</a>
+              <a :href="`tel:${dialPhone}`" class="text-[#1FB588] underline">{{ renderViewData.phone }}</a>
             </li>
             <li v-if="renderViewData.websiteUrl" class="flex items-center gap-2">
               <span>官網：</span>
