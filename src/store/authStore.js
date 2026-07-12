@@ -6,8 +6,15 @@ import {
   createUserWithEmailAndPassword,
   signInWithPopup,
   signOut,
+  updateProfile,
+  reauthenticateWithCredential,
+  reauthenticateWithPopup,
+  EmailAuthProvider,
+  updatePassword,
+  verifyBeforeUpdateEmail,
 } from 'firebase/auth'
-import {firebaseAuth, googleProvider} from '@/firebase.js'
+import {ref as storageRef, uploadBytes, getDownloadURL} from 'firebase/storage'
+import {firebaseAuth, googleProvider, firebaseStorage} from '@/firebase.js'
 
 const authErrorMessages = {
   'auth/email-already-in-use': '這個 Email 已經被註冊過了',
@@ -17,6 +24,7 @@ const authErrorMessages = {
   'auth/user-not-found': '找不到這個帳號',
   'auth/invalid-credential': '帳號或密碼錯誤',
   'auth/popup-closed-by-user': 'Google 登入視窗已關閉',
+  'auth/requires-recent-login': '請重新輸入密碼再試一次',
 }
 
 const toMessage = e => authErrorMessages[e.code] || '發生錯誤，請稍後再試'
@@ -67,5 +75,41 @@ export const useAuthStore = defineStore('auth', () => {
     await signOut(firebaseAuth)
   }
 
-  return {user, isAuthReady, loginWithEmail, registerWithEmail, loginWithGoogle, logout}
+  const updateDisplayName = async name => {
+    try {
+      await updateProfile(firebaseAuth.currentUser, {displayName: name})
+      user.value = {...firebaseAuth.currentUser}
+      return true
+    } catch (e) {
+      console.error(e)
+      alert(toMessage(e))
+      return false
+    }
+  }
+
+  const uploadAvatar = async file => {
+    try {
+      const fileRef = storageRef(firebaseStorage, `avatars/${firebaseAuth.currentUser.uid}`)
+      await uploadBytes(fileRef, file, {contentType: file.type})
+      const photoURL = await getDownloadURL(fileRef)
+      await updateProfile(firebaseAuth.currentUser, {photoURL})
+      user.value = {...firebaseAuth.currentUser}
+      return true
+    } catch (e) {
+      console.error(e)
+      alert('上傳大頭貼失敗，請稍後再試')
+      return false
+    }
+  }
+
+  return {
+    user,
+    isAuthReady,
+    loginWithEmail,
+    registerWithEmail,
+    loginWithGoogle,
+    logout,
+    updateDisplayName,
+    uploadAvatar,
+  }
 })
