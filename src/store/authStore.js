@@ -15,6 +15,7 @@ import {
 } from 'firebase/auth'
 import {ref as storageRef, uploadBytes, getDownloadURL} from 'firebase/storage'
 import {firebaseAuth, googleProvider, firebaseStorage} from '@/firebase.js'
+import {deleteAccountApi} from '@/api/index.js'
 
 const authErrorMessages = {
   'auth/email-already-in-use': '這個 Email 已經被註冊過了',
@@ -145,6 +146,18 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  const deleteAccount = async () => {
+    try {
+      await deleteAccountApi()
+      await signOut(firebaseAuth)
+      return true
+    } catch (e) {
+      console.error(e)
+      alert('刪除帳號失敗，請稍後再試')
+      return false
+    }
+  }
+
   return {
     user,
     isAuthReady,
@@ -157,5 +170,6 @@ export const useAuthStore = defineStore('auth', () => {
     changePassword,
     changeEmail,
     reauthenticate,
+    deleteAccount,
   }
 })

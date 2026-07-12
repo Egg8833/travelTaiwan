@@ -60,3 +60,5 @@ export const updateReviewApi = (spotId, reviewId, {rating, content}) =>
 
 export const deleteReviewApi = (spotId, reviewId) =>
   api.delete(`/reviews/${spotId}/${reviewId}`).then(res => res.data)
+
+export const deleteAccountApi = () => api.delete('/account').then(res => res.data)
