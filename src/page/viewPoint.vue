@@ -7,6 +7,7 @@ import StarRatingInput from "../components/StarRatingInput.vue";
 import { useRoute, useRouter } from "vue-router";
 
 import { getImagePath } from "@/common/useImage";
+import { displayAuthorName, avatarColor, avatarInitial } from "@/common/reviewDisplay.js";
 import { storeToRefs } from "pinia";
 import { useHomeViewStore } from "@/store/homeViewStore";
 import { useAuthStore } from "@/store/authStore";
@@ -126,6 +127,15 @@ const moveToNewViewPoint = (id) => {
   loadViewData(id);
   refreshRandomItems();
   reviewStore.fetchReviews(id);
+};
+
+const formatReviewDate = (isoString) => {
+  if (!isoString) return "";
+  const diffDays = Math.floor((Date.now() - new Date(isoString).getTime()) / 86400000);
+  if (diffDays <= 0) return "今天";
+  if (diffDays === 1) return "昨天";
+  if (diffDays < 30) return `${diffDays} 天前`;
+  return new Date(isoString).toLocaleDateString("zh-TW", { year: "numeric", month: "long", day: "numeric" });
 };
 </script>
 
@@ -403,18 +413,31 @@ const moveToNewViewPoint = (id) => {
           </div>
         </div>
 
-        <div>
-          <div v-for="review in reviewStore.reviews" :key="review.id">
-            <div class="pt-4 flex items-end">
-              <div class="w-10 h-10 rounded-full bg-[#208080]"></div>
-              <p class="ml-2 text-[18px] font-700 text-[#434343]">
-                {{ review.authorName }}
-              </p>
-              <div class="ml-auto">
+        <div class="flex flex-col gap-4 pt-6">
+          <div
+            v-for="review in reviewStore.reviews"
+            :key="review.id"
+            class="rounded-[16px] border border-solid border-[#eee] p-5 shadow-[0_1px_4px_rgba(0,0,0,0.04)]"
+          >
+            <div class="flex items-center gap-3">
+              <div
+                class="w-11 h-11 shrink-0 rounded-full flex items-center justify-center text-white font-700 text-[18px]"
+                :style="{ backgroundColor: avatarColor(displayAuthorName(review.authorName)) }"
+              >
+                {{ avatarInitial(displayAuthorName(review.authorName)) }}
+              </div>
+              <div class="min-w-0">
+                <p class="text-[16px] font-700 text-[#434343] truncate md:text-[18px]">
+                  {{ displayAuthorName(review.authorName) }}
+                </p>
+                <p class="text-[13px] text-[#a0a0a0]">{{ formatReviewDate(review.createdAt) }}</p>
+              </div>
+              <div class="ml-auto shrink-0">
                 <satisfaction :startNum="review.rating"></satisfaction>
               </div>
             </div>
-            <div class="pt-4 pb-6 border-b border-b-solid border-[#eee]">
+
+            <div class="pt-3">
               <div v-if="editingReviewId === review.id">
                 <StarRatingInput v-model="editRating" />
                 <textarea
@@ -428,8 +451,8 @@ const moveToNewViewPoint = (id) => {
                 </div>
               </div>
               <div v-else>
-                <p class="leading-6">{{ review.content }}</p>
-                <div v-if="authStore.user?.uid === review.uid" class="flex gap-2 mt-2">
+                <p class="leading-7 text-[#606060]">{{ review.content }}</p>
+                <div v-if="authStore.user?.uid === review.uid" class="flex gap-3 mt-3">
                   <button class="text-[#1FB588] underline" @click="startEdit(review)">編輯</button>
                   <button class="text-[#EB5757] underline" @click="removeReview(review.id)">刪除</button>
                 </div>
