@@ -16,7 +16,7 @@ const cityList = load('cityList.json')
 
 const cityEnToZh = Object.fromEntries(cityList.map(c => [c.City, c.CityName]))
 
-export function createApp({verifyToken, favoritesRepo, reviewsRepo}) {
+export function createApp({verifyToken, favoritesRepo, reviewsRepo, accountRepo}) {
   const app = express()
   app.use(cors())
   app.use(express.json())
@@ -115,6 +115,11 @@ export function createApp({verifyToken, favoritesRepo, reviewsRepo}) {
     const result = await reviewsRepo.remove(req.params.spotId, req.params.reviewId, req.uid)
     if (result.error === 'not_found') return res.status(404).json({message: 'review not found'})
     if (result.error === 'forbidden') return res.status(403).json({message: 'not your review'})
+    res.status(204).end()
+  })
+
+  app.delete('/api/account', verifyToken, async (req, res) => {
+    await accountRepo.deleteAccount(req.uid)
     res.status(204).end()
   })
 

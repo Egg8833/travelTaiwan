@@ -401,6 +401,17 @@ export default {
         },
       },
     },
+    '/api/account': {
+      delete: {
+        tags: ['Member'],
+        summary: '刪除目前登入帳號（含收藏、評論與 Firebase Auth 帳號，無法復原）',
+        security: [{bearerAuth: []}],
+        responses: {
+          204: {description: '帳號已刪除'},
+          401: {description: '未登入或 Token 無效', content: {'application/json': {schema: {$ref: '#/components/schemas/Error'}}}},
+        },
+      },
+    },
   },
   components: {
     securitySchemes: {

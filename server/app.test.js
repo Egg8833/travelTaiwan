@@ -59,10 +59,18 @@ const fakeReviewsRepo = {
   },
 }
 
+const deletedAccounts = []
+const fakeAccountRepo = {
+  async deleteAccount(uid) {
+    deletedAccounts.push(uid)
+  },
+}
+
 const app = createApp({
   verifyToken: fakeVerifyToken,
   favoritesRepo: fakeFavoritesRepo,
   reviewsRepo: fakeReviewsRepo,
+  accountRepo: fakeAccountRepo,
 })
 const server = app.listen(0)
 const base = `http://localhost:${server.address().port}`
@@ -143,7 +151,7 @@ test('GET /api/openapi.json 回傳 OpenAPI spec', async () => {
   assert.equal(status, 200)
   assert.equal(body.openapi, '3.0.3')
   assert.ok(body.paths['/api/scenic-spots'])
-  assert.equal(Object.keys(body.paths).length, 11)
+  assert.equal(Object.keys(body.paths).length, 12)
 })
 
 test('GET /api/favorites 未帶 token 回 401', async () => {
@@ -255,6 +263,20 @@ test('編輯不存在的評論回 404', async () => {
     body: JSON.stringify({rating: 5, content: 'x'}),
   })
   assert.equal(res.status, 404)
+})
+
+test('DELETE /api/account 未帶 token 回 401', async () => {
+  const res = await fetch(base + '/api/account', {method: 'DELETE'})
+  assert.equal(res.status, 401)
+})
+
+test('DELETE /api/account 已登入回 204 並呼叫 accountRepo.deleteAccount', async () => {
+  const res = await fetch(base + '/api/account', {
+    method: 'DELETE',
+    headers: {Authorization: 'Bearer valid-token'},
+  })
+  assert.equal(res.status, 204)
+  assert.ok(deletedAccounts.includes('test-uid'))
 })
 
 export {fakeVerifyToken, fakeFavoritesRepo, fakeReviewsRepo, createApp, base, getJson}
