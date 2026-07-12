@@ -151,4 +151,126 @@ export const seedReviews = [
       {authorName: pick(4), rating: 4, content: '附近就有小吃跟民宿，安排東部小旅行順路來很方便。'},
     ],
   },
+  {
+    spotId: 'VCA_376540000A_000229',
+    spotName: '嘉明湖',
+    reviews: [
+      {authorName: pick(5), rating: 5, content: '傳說中的天使的眼淚，親眼看到真的會起雞皮疙瘩，值得辛苦的路程。'},
+      {authorName: pick(6), rating: 4, content: '要申請入山證、排隊抽籤，行程規劃要提早，體力也要練好。'},
+      {authorName: pick(7), rating: 5, content: '三天兩夜的行程有點硬，但看到湖面倒映天空的瞬間全部值得了。'},
+      {authorName: pick(0), rating: 3, content: '天氣是關鍵，我們遇到起霧看不太到全貌，建議多留備用日。'},
+    ],
+  },
+  {
+    spotId: 'VCA_376540000A_000252',
+    spotName: '大坡池',
+    reviews: [
+      {authorName: pick(1), rating: 5, content: '騎腳踏車環湖超舒服，稻田配山景，是我心中最美的花東風景之一。'},
+      {authorName: pick(2), rating: 4, content: '夏天有竹筏季活動可以體驗，滑竹筏遊湖很新奇，小孩很喜歡。'},
+      {authorName: pick(3), rating: 4, content: '傍晚來散步很愜意，蚊蟲有點多記得噴防蚊液。'},
+    ],
+  },
+  {
+    spotId: 'VCA_376420000A_000004',
+    spotName: '南澳農場',
+    reviews: [
+      {authorName: pick(4), rating: 5, content: '晚上完全無光害，星空多到數不完，第一次看到這麼清楚的銀河。'},
+      {authorName: pick(5), rating: 4, content: '場地免費又寬敞，衛浴設施比想像中乾淨，露營過夜很推薦。'},
+      {authorName: pick(6), rating: 4, content: '白天可以烤肉、玩水，晚上看星星，一天行程很豐富。'},
+    ],
+  },
+  {
+    spotId: 'VCA_376550000A_000001',
+    spotName: '遠雄海洋公園',
+    reviews: [
+      {authorName: pick(7), rating: 5, content: '海洋劇場的海豚表演很精彩，小孩看得目不轉睛，玩一整天不會膩。'},
+      {authorName: pick(0), rating: 4, content: '園區依山而建要走不少坡道，天氣熱建議安排纜車代步。'},
+      {authorName: pick(1), rating: 4, content: '設施蠻多元的，適合安排一整天，門票稍貴但體驗算值得。'},
+      {authorName: pick(2), rating: 3, content: '假日人潮不少，熱門表演建議提早卡位，不然只能站著看。'},
+    ],
+  },
+  {
+    spotId: 'VCA_376550000A_000030',
+    spotName: '米棧古道',
+    reviews: [
+      {authorName: pick(3), rating: 4, content: '古道不長很好走，沿途竹林跟古樸的護欄很有味道，適合親子健行。'},
+      {authorName: pick(4), rating: 4, content: '知道的人不多所以很清幽，可以感受早期挑夫文化的歷史氛圍。'},
+      {authorName: pick(5), rating: 3, content: '指標不算很明顯，建議先查好路線或跟著在地嚮導走比較安心。'},
+    ],
+  },
+  {
+    spotId: 'VCA_376560000A_000001',
+    spotName: '貝殼教堂',
+    reviews: [
+      {authorName: pick(6), rating: 5, content: '夕陽配上心型鏤空屋頂的光影很浪漫，情侶約會拍照首選。'},
+      {authorName: pick(7), rating: 4, content: '教堂造型很特別，附近沙灘也很乾淨，可以順便散步戲水。'},
+      {authorName: pick(0), rating: 4, content: '傍晚光線最漂亮，建議算好日落時間再過去，人不多很好拍。'},
+    ],
+  },
+  {
+    spotId: 'VCA_376560000A_000004',
+    spotName: '吉貝嶼',
+    reviews: [
+      {authorName: pick(1), rating: 5, content: '沙尾長達好幾公里，海水藍到不可思議，玩水上活動的天堂。'},
+      {authorName: pick(2), rating: 5, content: '香蕉船、拖曳傘都有，一整套水上活動玩下來超盡興，很適合朋友揪團。'},
+      {authorName: pick(3), rating: 4, content: '搭船要看船班時間，夏天旺季人潮較多，建議提早訂船票。'},
+      {authorName: pick(4), rating: 4, content: '沙尾退潮時可以走很遠，記得穿好防滑鞋，礁石區要小心。'},
+    ],
+  },
+  {
+    spotId: 'VCA_376560000A_000011',
+    spotName: '龍門商港',
+    reviews: [
+      {authorName: pick(5), rating: 4, content: '紅色貨櫃屋候船室很好拍，搭船往返嘉義布袋比想像中方便快速。'},
+      {authorName: pick(6), rating: 3, content: '單純轉乘用的港口，周邊比較沒有其他景點，適合順路停留拍照。'},
+      {authorName: pick(7), rating: 4, content: '工業風的建築設計蠻特別的，喜歡拍網美照的可以來這邊取景。'},
+    ],
+  },
+  {
+    spotId: 'VCA_376560000A_000017',
+    spotName: '山水漁港',
+    reviews: [
+      {authorName: pick(0), rating: 4, content: '旁邊的山水沙灘很美，黃昏來吹海風看漁船進港很療癒。'},
+      {authorName: pick(1), rating: 4, content: '觀星公園晚上人少，天氣好的話星星很清楚，適合安靜散步。'},
+      {authorName: pick(2), rating: 3, content: '漁港本身較偏日常機能，主要還是為了旁邊的沙灘跟星空順道來看。'},
+    ],
+  },
+  {
+    spotId: 'VCA_371020000A_000429',
+    spotName: '金門城',
+    reviews: [
+      {authorName: pick(3), rating: 4, content: '古城牆保存得算完整，能感受到明代防禦海盜的歷史痕跡，很有意義。'},
+      {authorName: pick(4), rating: 4, content: '腹地不算大但很適合搭配周邊古崗湖、水頭聚落一起排一日遊。'},
+      {authorName: pick(5), rating: 3, content: '現場解說牌不算多，建議先查好歷史背景再去，體驗會更豐富。'},
+    ],
+  },
+  {
+    spotId: 'VCA_379000000A_000283',
+    spotName: '烏來瀑布',
+    reviews: [
+      {authorName: pick(6), rating: 5, content: '搭台車再轉纜車上山看瀑布全貌，體驗很特別，小朋友超愛台車。'},
+      {authorName: pick(7), rating: 5, content: '雨季水量豐沛時氣勢很磅礡，站在觀瀑平台都能感受到水氣。'},
+      {authorName: pick(0), rating: 4, content: '老街小吃也很不錯，炸溪魚跟竹筒飯記得順路吃一輪。'},
+      {authorName: pick(1), rating: 4, content: '假日人潮較多，台車跟纜車都要排隊，建議早點出發比較從容。'},
+    ],
+  },
+  {
+    spotId: 'VCA_379000000A_000423',
+    spotName: '無極天元宮',
+    reviews: [
+      {authorName: pick(2), rating: 5, content: '櫻花季來真的美翻了，天壇配吉野櫻的畫面很值得專程上山。'},
+      {authorName: pick(3), rating: 4, content: '建築本身就很雄偉壯觀，非花季來也能感受莊嚴的氛圍。'},
+      {authorName: pick(4), rating: 3, content: '花季假日車潮很誇張，建議提早或搭接駁車上山，不然會塞很久。'},
+      {authorName: pick(5), rating: 5, content: '晚上點燈後的天壇搭夜櫻別有一番風味，推薦傍晚上山待到天黑。'},
+    ],
+  },
+  {
+    spotId: 'VCA_397000000A_000235',
+    spotName: '內門308高地',
+    reviews: [
+      {authorName: pick(6), rating: 5, content: '惡地地形真的很像月球表面，站上觀景台視野遼闊，很震撼。'},
+      {authorName: pick(7), rating: 4, content: '景觀餐廳可以邊吃飯邊看夕陽，遠眺嘉南平原的視野很棒。'},
+      {authorName: pick(0), rating: 4, content: '知名度不算高但風景意外好，人潮不多可以悠閒欣賞月世界地形。'},
+    ],
+  },
 ]

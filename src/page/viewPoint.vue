@@ -183,9 +183,9 @@ const moveToNewViewPoint = (id) => {
       </div>
       <div class="flex justify-between items-center mb-2">
         <satisfaction
-          :startNum="3"
+          :startNum="Math.round(averageRating)"
           :commit="true"
-          :commitNum="234"
+          :commitNum="reviewStore.reviews.length"
         ></satisfaction>
         <p class="text-[#808080] w-30 md:w-unset">
           {{ renderViewData.Address || " " }}
