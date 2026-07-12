@@ -102,6 +102,49 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  const changePassword = async (currentPassword, newPassword) => {
+    try {
+      const credential = EmailAuthProvider.credential(firebaseAuth.currentUser.email, currentPassword)
+      await reauthenticateWithCredential(firebaseAuth.currentUser, credential)
+      await updatePassword(firebaseAuth.currentUser, newPassword)
+      return true
+    } catch (e) {
+      console.error(e)
+      alert(toMessage(e))
+      return false
+    }
+  }
+
+  const changeEmail = async (currentPassword, newEmail) => {
+    try {
+      const credential = EmailAuthProvider.credential(firebaseAuth.currentUser.email, currentPassword)
+      await reauthenticateWithCredential(firebaseAuth.currentUser, credential)
+      await verifyBeforeUpdateEmail(firebaseAuth.currentUser, newEmail)
+      return true
+    } catch (e) {
+      console.error(e)
+      alert(toMessage(e))
+      return false
+    }
+  }
+
+  const reauthenticate = async password => {
+    try {
+      const providerId = firebaseAuth.currentUser.providerData[0]?.providerId
+      if (providerId === 'google.com') {
+        await reauthenticateWithPopup(firebaseAuth.currentUser, googleProvider)
+      } else {
+        const credential = EmailAuthProvider.credential(firebaseAuth.currentUser.email, password)
+        await reauthenticateWithCredential(firebaseAuth.currentUser, credential)
+      }
+      return true
+    } catch (e) {
+      console.error(e)
+      alert(toMessage(e))
+      return false
+    }
+  }
+
   return {
     user,
     isAuthReady,
@@ -111,5 +154,8 @@ export const useAuthStore = defineStore('auth', () => {
     logout,
     updateDisplayName,
     uploadAvatar,
+    changePassword,
+    changeEmail,
+    reauthenticate,
   }
 })
