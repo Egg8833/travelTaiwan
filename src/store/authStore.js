@@ -1,5 +1,5 @@
 import {defineStore} from 'pinia'
-import {ref} from 'vue'
+import {ref, triggerRef} from 'vue'
 import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
@@ -78,7 +78,7 @@ export const useAuthStore = defineStore('auth', () => {
   const updateDisplayName = async name => {
     try {
       await updateProfile(firebaseAuth.currentUser, {displayName: name})
-      user.value = {...firebaseAuth.currentUser}
+      triggerRef(user)
       return true
     } catch (e) {
       console.error(e)
@@ -93,7 +93,7 @@ export const useAuthStore = defineStore('auth', () => {
       await uploadBytes(fileRef, file, {contentType: file.type})
       const photoURL = await getDownloadURL(fileRef)
       await updateProfile(firebaseAuth.currentUser, {photoURL})
-      user.value = {...firebaseAuth.currentUser}
+      triggerRef(user)
       return true
     } catch (e) {
       console.error(e)
