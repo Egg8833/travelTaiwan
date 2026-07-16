@@ -34,7 +34,7 @@ const confirmDelete = async () => {
 </script>
 
 <template>
-  <div class="pt-6">
+  <div>
     <p class="font-700 text-[#EB5757] mb-2">刪除帳號</p>
     <p class="text-[#808080] mb-3">
       刪除後，你的收藏與評論都會一併永久刪除，且無法復原。

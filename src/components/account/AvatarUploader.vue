@@ -2,6 +2,9 @@
 import {ref} from "vue";
 import {useAuthStore} from "@/store/authStore.js";
 
+defineProps({
+  last: {type: Boolean, default: false},
+});
 const authStore = useAuthStore();
 const uploading = ref(false);
 const fileInput = ref(null);
@@ -30,7 +33,7 @@ const onFileChange = async e => {
 </script>
 
 <template>
-  <div class="pt-6 pb-6 border-b border-b-solid border-[#eee]">
+  <div :class="['pt-6 pb-6', !last && 'border-b border-b-solid border-[#eee]']">
     <p class="font-700 text-[#434343] mb-2">大頭貼</p>
     <div class="flex items-center gap-4">
       <img
