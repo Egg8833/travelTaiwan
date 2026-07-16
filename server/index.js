@@ -1,5 +1,5 @@
 import {createApp} from './app.js'
-import {auth, firestore} from './firebaseAdmin.js'
+import {auth, firestore, storage} from './firebaseAdmin.js'
 import {createVerifyFirebaseToken} from './middleware/verifyFirebaseToken.js'
 import {createFavoritesRepo} from './repositories/favoritesRepo.js'
 import {createReviewsRepo} from './repositories/reviewsRepo.js'
@@ -9,7 +9,7 @@ const app = createApp({
   verifyToken: createVerifyFirebaseToken(auth),
   favoritesRepo: createFavoritesRepo(firestore),
   reviewsRepo: createReviewsRepo(firestore),
-  accountRepo: createAccountRepo(firestore, auth),
+  accountRepo: createAccountRepo(firestore, auth, storage),
 })
 
 const port = process.env.PORT || 3000

@@ -37,6 +37,7 @@ const onHeartClick = () => {
       <img
         :src="getImagePath(cardData.photoSrc)"
         class="object-cover w-[274px] h-[168px]"
+        :alt="cardData.title"
       />
       <div
         class="absolute top-2 right-2 flex items-center justify-center w-10 h-10 bg-white border-[#28DAA5] rounded-full border-1 border-solid cursor-pointer"

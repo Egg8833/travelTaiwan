@@ -409,6 +409,7 @@ export default {
         responses: {
           204: {description: '帳號已刪除'},
           401: {description: '未登入或 Token 無效', content: {'application/json': {schema: {$ref: '#/components/schemas/Error'}}}},
+          500: {description: '伺服器錯誤', content: {'application/json': {schema: {$ref: '#/components/schemas/Error'}}}},
         },
       },
     },

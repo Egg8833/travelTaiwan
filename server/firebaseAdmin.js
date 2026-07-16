@@ -1,6 +1,7 @@
 import {cert, getApps, initializeApp} from 'firebase-admin/app'
 import {getAuth} from 'firebase-admin/auth'
 import {getFirestore} from 'firebase-admin/firestore'
+import {getStorage} from 'firebase-admin/storage'
 
 function initializeIfNeeded() {
   if (getApps().length) return
@@ -26,3 +27,4 @@ function lazy(getReal) {
 
 export const auth = lazy(() => getAuth())
 export const firestore = lazy(() => getFirestore())
+export const storage = lazy(() => getStorage())

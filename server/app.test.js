@@ -60,8 +60,10 @@ const fakeReviewsRepo = {
 }
 
 const deletedAccounts = []
+let accountDeletionShouldFail = false
 const fakeAccountRepo = {
   async deleteAccount(uid) {
+    if (accountDeletionShouldFail) throw new Error('simulated failure')
     deletedAccounts.push(uid)
   },
 }
@@ -277,6 +279,19 @@ test('DELETE /api/account 已登入回 204 並呼叫 accountRepo.deleteAccount',
   })
   assert.equal(res.status, 204)
   assert.ok(deletedAccounts.includes('test-uid'))
+})
+
+test('DELETE /api/account 失敗時回 500', async () => {
+  accountDeletionShouldFail = true
+  try {
+    const res = await fetch(base + '/api/account', {
+      method: 'DELETE',
+      headers: {Authorization: 'Bearer valid-token'},
+    })
+    assert.equal(res.status, 500)
+  } finally {
+    accountDeletionShouldFail = false
+  }
 })
 
 export {fakeVerifyToken, fakeFavoritesRepo, fakeReviewsRepo, createApp, base, getJson}

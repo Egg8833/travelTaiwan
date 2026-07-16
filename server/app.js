@@ -119,8 +119,13 @@ export function createApp({verifyToken, favoritesRepo, reviewsRepo, accountRepo}
   })
 
   app.delete('/api/account', verifyToken, async (req, res) => {
-    await accountRepo.deleteAccount(req.uid)
-    res.status(204).end()
+    try {
+      await accountRepo.deleteAccount(req.uid)
+      res.status(204).end()
+    } catch (e) {
+      console.error(e)
+      res.status(500).json({message: 'failed to delete account'})
+    }
   })
 
   app.get('/api/openapi.json', (req, res) => res.json(openapiSpec))
