@@ -357,17 +357,28 @@ export default {
         },
       },
     },
-    '/api/reviews/mine/count': {
+    '/api/reviews/mine': {
       get: {
         tags: ['Review'],
-        summary: '取得目前使用者已留言的評論總數（跨所有景點）',
+        summary: '取得目前使用者評論過的景點清單（跨所有景點）',
         security: [{bearerAuth: []}],
         responses: {
           200: {
-            description: '評論總數',
+            description: '評論過的景點清單',
             content: {
               'application/json': {
-                schema: {type: 'object', properties: {count: {type: 'integer', example: 3}}},
+                schema: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      spotId: {type: 'string'},
+                      spotName: {type: 'string'},
+                      pictureUrl: {type: 'string', nullable: true},
+                      rating: {type: 'integer', example: 4},
+                    },
+                  },
+                },
               },
             },
           },

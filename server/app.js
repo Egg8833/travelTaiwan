@@ -18,10 +18,12 @@ const cityEnToZh = Object.fromEntries(cityList.map(c => [c.City, c.CityName]))
 
 const asyncHandler = handler => (req, res, next) => handler(req, res, next).catch(next)
 
-export function createApp({verifyToken, favoritesRepo, reviewsRepo, accountRepo}) {
+export function createApp({verifyToken, favoritesRepo, reviewsRepo, accountRepo, allViewPoint: testAllViewPoint}) {
   const app = express()
   app.use(cors())
   app.use(express.json())
+
+  const spots = testAllViewPoint || allViewPoint
 
   app.get('/api/scenic-spots', (req, res) => {
     const {city, top = 30} = req.query
@@ -82,6 +84,23 @@ export function createApp({verifyToken, favoritesRepo, reviewsRepo, accountRepo}
     res.status(204).end()
   }))
 
+  app.get('/api/reviews/mine', verifyToken, asyncHandler(async (req, res) => {
+    const myReviews = await reviewsRepo.listByUser(req.uid)
+    const reviewSpots = myReviews
+      .map(({spotId, rating}) => {
+        const spot = spots.find(s => s.ScenicSpotID === spotId)
+        if (!spot) return null
+        return {
+          spotId,
+          spotName: spot.ScenicSpotName,
+          pictureUrl: Object.values(spot.Picture)[0] ?? null,
+          rating,
+        }
+      })
+      .filter(Boolean)
+    res.json(reviewSpots)
+  }))
+
   app.get('/api/reviews/:spotId', asyncHandler(async (req, res) => {
     res.json(await reviewsRepo.list(req.params.spotId))
   }))
@@ -100,10 +119,6 @@ export function createApp({verifyToken, favoritesRepo, reviewsRepo, accountRepo}
     })
     if (review.error === 'duplicate') return res.status(409).json({message: '你已經評論過這個景點了'})
     res.status(201).json(review)
-  }))
-
-  app.get('/api/reviews/mine/count', verifyToken, asyncHandler(async (req, res) => {
-    res.json({count: await reviewsRepo.countByUser(req.uid)})
   }))
 
   app.patch('/api/reviews/:spotId/:reviewId', verifyToken, asyncHandler(async (req, res) => {

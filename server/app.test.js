@@ -60,14 +60,14 @@ const fakeReviewsRepo = {
     reviewsStore.get(spotId).delete(reviewId)
     return {error: null}
   },
-  async countByUser(uid) {
-    let count = 0
-    for (const entries of reviewsStore.values()) {
+  async listByUser(uid) {
+    const result = []
+    for (const [spotId, entries] of reviewsStore.entries()) {
       for (const entry of entries.values()) {
-        if (entry.uid === uid) count++
+        if (entry.uid === uid) result.push({spotId, rating: entry.rating})
       }
     }
-    return count
+    return result
   },
 }
 
@@ -80,11 +80,17 @@ const fakeAccountRepo = {
   },
 }
 
+const testAllViewPoint = [
+  {ScenicSpotID: 'spot-10', ScenicSpotName: 'Test Spot 10', Picture: {'pic1': 'http://example.com/pic1.jpg'}},
+  {ScenicSpotID: 'spot-11', ScenicSpotName: 'Test Spot 11', Picture: {'pic1': 'http://example.com/pic2.jpg'}},
+]
+
 const app = createApp({
   verifyToken: fakeVerifyToken,
   favoritesRepo: fakeFavoritesRepo,
   reviewsRepo: fakeReviewsRepo,
   accountRepo: fakeAccountRepo,
+  allViewPoint: testAllViewPoint,
 })
 const server = app.listen(0)
 const base = `http://localhost:${server.address().port}`
@@ -306,12 +312,12 @@ test('編輯不存在的評論回 404', async () => {
   assert.equal(res.status, 404)
 })
 
-test('GET /api/reviews/mine/count 未帶 token 回 401', async () => {
-  const res = await fetch(base + '/api/reviews/mine/count')
+test('GET /api/reviews/mine 未帶 token 回 401', async () => {
+  const res = await fetch(base + '/api/reviews/mine')
   assert.equal(res.status, 401)
 })
 
-test('GET /api/reviews/mine/count 回傳跨景點的評論總數', async () => {
+test('GET /api/reviews/mine 回傳跨景點的評論清單', async () => {
   const authHeaders = {Authorization: 'Bearer valid-token', 'Content-Type': 'application/json'}
   await fetch(base + '/api/reviews/spot-10', {
     method: 'POST',
@@ -324,10 +330,11 @@ test('GET /api/reviews/mine/count 回傳跨景點的評論總數', async () => {
     body: JSON.stringify({rating: 3, content: '普通'}),
   })
 
-  const res = await fetch(base + '/api/reviews/mine/count', {headers: {Authorization: 'Bearer valid-token'}})
+  const res = await fetch(base + '/api/reviews/mine', {headers: {Authorization: 'Bearer valid-token'}})
   assert.equal(res.status, 200)
   const body = await res.json()
-  assert.equal(body.count, 2)
+  assert.equal(body.length, 2)
+  assert.ok(body.every(s => typeof s.spotId === 'string' && typeof s.rating === 'number'))
 })
 
 test('DELETE /api/account 未帶 token 回 401', async () => {
