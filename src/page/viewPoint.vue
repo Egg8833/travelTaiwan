@@ -69,6 +69,10 @@ const averageRating = computed(() => {
   return Math.round((sum / reviewStore.reviews.length) * 10) / 10;
 });
 
+const myReview = computed(() =>
+  reviewStore.reviews.find(r => r.uid === authStore.user?.uid)
+);
+
 const newReviewRating = ref(0);
 const newReviewContent = ref("");
 
@@ -257,7 +261,7 @@ const formatReviewDate = (isoString) => {
         </h2>
 
         <div class="pt-2 pb-6 border-b border-b-solid border-[#eee]">
-          <div v-if="authStore.user">
+          <div v-if="authStore.user && !myReview">
             <p class="font-700 text-[#434343] mb-2">留下你的評論</p>
             <StarRatingInput v-model="newReviewRating" />
             <textarea
@@ -267,6 +271,9 @@ const formatReviewDate = (isoString) => {
               placeholder="分享你的旅遊心得..."
             ></textarea>
             <button class="btn mt-2" @click="submitReview">送出評論</button>
+          </div>
+          <div v-else-if="authStore.user && myReview" class="text-[#808080]">
+            你已經評論過這個景點了，可以在下方編輯或刪除你的評論。
           </div>
           <div v-else>
             <router-link :to="{ name: 'login' }" class="text-[#1FB588] underline">
