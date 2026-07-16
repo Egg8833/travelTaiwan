@@ -36,9 +36,12 @@ const fakeReviewsRepo = {
   },
   async add(spotId, {uid, authorName, rating, content}) {
     if (!reviewsStore.has(spotId)) reviewsStore.set(spotId, new Map())
+    const spotEntries = reviewsStore.get(spotId)
+    const existing = [...spotEntries.values()].find(e => e.uid === uid)
+    if (existing) return {error: 'duplicate'}
     const id = String(nextReviewId++)
     const data = {id, uid, authorName, rating, content, isSeed: false, createdAt: new Date().toISOString(), updatedAt: null}
-    reviewsStore.get(spotId).set(id, data)
+    spotEntries.set(id, data)
     return data
   },
   async update(spotId, reviewId, uid, {rating, content}) {
@@ -265,6 +268,33 @@ test('新增 → 編輯 → 刪除自己的評論', async () => {
 
   const {body: listAfter} = await getJson('/api/reviews/spot-9')
   assert.ok(!listAfter.some(r => r.id === created.id))
+})
+
+test('對同一景點重複送出評論回 409', async () => {
+  const authHeaders = {Authorization: 'Bearer valid-token', 'Content-Type': 'application/json'}
+
+  const firstRes = await fetch(base + '/api/reviews/spot-dup', {
+    method: 'POST',
+    headers: authHeaders,
+    body: JSON.stringify({rating: 4, content: '第一次評論'}),
+  })
+  assert.equal(firstRes.status, 201)
+  const created = await firstRes.json()
+
+  const secondRes = await fetch(base + '/api/reviews/spot-dup', {
+    method: 'POST',
+    headers: authHeaders,
+    body: JSON.stringify({rating: 5, content: '第二次評論'}),
+  })
+  assert.equal(secondRes.status, 409)
+  const body = await secondRes.json()
+  assert.ok(body.message)
+
+  // Clean up the created review
+  await fetch(base + `/api/reviews/spot-dup/${created.id}`, {
+    method: 'DELETE',
+    headers: authHeaders,
+  })
 })
 
 test('編輯不存在的評論回 404', async () => {

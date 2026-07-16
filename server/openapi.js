@@ -352,6 +352,7 @@ export default {
         responses: {
           201: {description: '已新增', content: {'application/json': {schema: {$ref: '#/components/schemas/Review'}}}},
           400: {description: '缺少或不合法的欄位', content: {'application/json': {schema: {$ref: '#/components/schemas/Error'}}}},
+          409: {description: '已對此景點留過評論', content: {'application/json': {schema: {$ref: '#/components/schemas/Error'}}}},
           401: {description: '未登入或 Token 無效', content: {'application/json': {schema: {$ref: '#/components/schemas/Error'}}}},
         },
       },

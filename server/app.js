@@ -98,6 +98,7 @@ export function createApp({verifyToken, favoritesRepo, reviewsRepo, accountRepo}
       rating,
       content,
     })
+    if (review.error === 'duplicate') return res.status(409).json({message: '你已經評論過這個景點了'})
     res.status(201).json(review)
   }))
 

@@ -15,7 +15,11 @@ export const createReviewsRepo = firestore => ({
   },
 
   async add(spotId, {uid, authorName, rating, content}) {
-    const ref = firestore.collection('reviews').doc(spotId).collection('entries').doc()
+    const collection = firestore.collection('reviews').doc(spotId).collection('entries')
+    const existing = await collection.where('uid', '==', uid).limit(1).get()
+    if (!existing.empty) return {error: 'duplicate'}
+
+    const ref = collection.doc()
     const data = {
       uid,
       authorName,
