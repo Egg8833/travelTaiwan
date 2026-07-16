@@ -2,6 +2,7 @@
 import {onMounted} from "vue";
 import {useRouter} from "vue-router";
 import card from "@/components/card.vue";
+import AccountSettingsPanel from "@/components/account/AccountSettingsPanel.vue";
 import {useAuthStore} from "@/store/authStore.js";
 import {useFavoriteStore} from "@/store/favoriteStore.js";
 import noImage from "@/assets/images/empty-img.png";
@@ -59,6 +60,8 @@ const toCardData = fav => {
         登出
       </button>
     </div>
+
+    <AccountSettingsPanel />
 
     <h2 class="text-[20px] font-700 text-[#434343] mb-4">我的收藏</h2>
     <p v-if="favoriteStore.favoriteList.length === 0" class="text-[#808080]">
