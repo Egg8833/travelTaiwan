@@ -1,16 +1,17 @@
 import {defineStore} from 'pinia'
-import {ref} from 'vue'
+import {ref, computed} from 'vue'
 import {
   getReviewsApi,
   addReviewApi,
   updateReviewApi,
   deleteReviewApi,
-  getMyReviewCountApi,
+  getMyReviewedSpotsApi,
 } from '@/api/index.js'
 
 export const useReviewStore = defineStore('review', () => {
   const reviews = ref([])
-  const myReviewCount = ref(0)
+  const reviewedSpots = ref([])
+  const myReviewCount = computed(() => reviewedSpots.value.length)
 
   const fetchReviews = async spotId => {
     try {
@@ -20,9 +21,9 @@ export const useReviewStore = defineStore('review', () => {
     }
   }
 
-  const fetchMyReviewCount = async () => {
+  const fetchReviewedSpots = async () => {
     try {
-      myReviewCount.value = await getMyReviewCountApi()
+      reviewedSpots.value = await getMyReviewedSpotsApi()
     } catch (e) {
       console.error(e)
     }
@@ -35,7 +36,11 @@ export const useReviewStore = defineStore('review', () => {
       return true
     } catch (e) {
       console.error(e)
-      alert('送出評論失敗，請稍後再試')
+      if (e.response?.status === 409) {
+        alert('你已經評論過這個景點了')
+      } else {
+        alert('送出評論失敗，請稍後再試')
+      }
       return false
     }
   }
@@ -64,5 +69,14 @@ export const useReviewStore = defineStore('review', () => {
     }
   }
 
-  return {reviews, myReviewCount, fetchReviews, fetchMyReviewCount, addReview, updateReview, deleteReview}
+  return {
+    reviews,
+    reviewedSpots,
+    myReviewCount,
+    fetchReviews,
+    fetchReviewedSpots,
+    addReview,
+    updateReview,
+    deleteReview,
+  }
 })
