@@ -34,7 +34,7 @@ const loadRatings = async (favorites) => {
 };
 
 onMounted(async () => {
-  reviewStore.fetchMyReviewCount();
+  reviewStore.fetchReviewedSpots();
   await favoriteStore.fetchFavorites();
   loadRatings(favoriteStore.favoriteList);
 });
@@ -57,6 +57,20 @@ const toCardData = (fav) => {
     photoSrc,
     tagText: [],
     startNum: ratingsBySpotId.value[fav.spotId] ?? 0,
+  };
+};
+
+const toReviewCardData = (spot) => {
+  const photoSrc = [spot.pictureUrl].filter(Boolean);
+  if (photoSrc.length === 0) {
+    photoSrc.push(noImage);
+  }
+  return {
+    id: spot.spotId,
+    title: spot.spotName,
+    photoSrc,
+    tagText: [],
+    startNum: spot.rating,
   };
 };
 </script>
@@ -151,6 +165,42 @@ const toCardData = (fav) => {
           :to="`/viewList/${fav.spotId}`"
         >
           <card :cardData="toCardData(fav)"></card>
+        </router-link>
+      </div>
+    </section>
+
+    <section class="mt-10">
+      <h2 class="text-[20px] font-700 text-[#434343] mb-4 flex items-center gap-2">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" class="shrink-0">
+          <path
+            d="M4 4h16v12H7l-3 3V4Z"
+            fill="#1FB588"
+          />
+        </svg>
+        我評論過的景點
+      </h2>
+
+      <div
+        v-if="reviewStore.reviewedSpots.length === 0"
+        class="empty-state rounded-[16px] border-1 border-dashed border-[#c9e9de] bg-[#F3FBF8] py-14 px-6 text-center"
+      >
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" class="mx-auto mb-3">
+          <circle cx="12" cy="12" r="9" stroke="#28DAA5" stroke-width="1.6" />
+          <path d="m14.5 9.5-2 5.5-2.5-3 5.5-2Z" fill="#28DAA5" />
+        </svg>
+        <p class="text-[#808080] mb-4">還沒有留下任何評論，去景點頁分享你的旅行故事吧！</p>
+        <router-link :to="{ name: 'viewList' }" class="btn inline-block">
+          去找景點
+        </router-link>
+      </div>
+
+      <div v-else class="flex flex-wrap gap-4">
+        <router-link
+          v-for="spot in reviewStore.reviewedSpots"
+          :key="spot.spotId"
+          :to="`/viewList/${spot.spotId}`"
+        >
+          <card :cardData="toReviewCardData(spot)"></card>
         </router-link>
       </div>
     </section>
