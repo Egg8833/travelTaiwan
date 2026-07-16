@@ -9,6 +9,11 @@ export const createReviewsRepo = firestore => ({
     return snap.docs.map(d => ({id: d.id, ...d.data()}))
   },
 
+  async countByUser(uid) {
+    const snap = await firestore.collectionGroup('entries').where('uid', '==', uid).get()
+    return snap.size
+  },
+
   async add(spotId, {uid, authorName, rating, content}) {
     const ref = firestore.collection('reviews').doc(spotId).collection('entries').doc()
     const data = {

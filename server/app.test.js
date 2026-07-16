@@ -57,6 +57,15 @@ const fakeReviewsRepo = {
     reviewsStore.get(spotId).delete(reviewId)
     return {error: null}
   },
+  async countByUser(uid) {
+    let count = 0
+    for (const entries of reviewsStore.values()) {
+      for (const entry of entries.values()) {
+        if (entry.uid === uid) count++
+      }
+    }
+    return count
+  },
 }
 
 const deletedAccounts = []
@@ -153,7 +162,7 @@ test('GET /api/openapi.json 回傳 OpenAPI spec', async () => {
   assert.equal(status, 200)
   assert.equal(body.openapi, '3.0.3')
   assert.ok(body.paths['/api/scenic-spots'])
-  assert.equal(Object.keys(body.paths).length, 12)
+  assert.equal(Object.keys(body.paths).length, 13)
 })
 
 test('GET /api/favorites 未帶 token 回 401', async () => {
@@ -265,6 +274,30 @@ test('編輯不存在的評論回 404', async () => {
     body: JSON.stringify({rating: 5, content: 'x'}),
   })
   assert.equal(res.status, 404)
+})
+
+test('GET /api/reviews/mine/count 未帶 token 回 401', async () => {
+  const res = await fetch(base + '/api/reviews/mine/count')
+  assert.equal(res.status, 401)
+})
+
+test('GET /api/reviews/mine/count 回傳跨景點的評論總數', async () => {
+  const authHeaders = {Authorization: 'Bearer valid-token', 'Content-Type': 'application/json'}
+  await fetch(base + '/api/reviews/spot-10', {
+    method: 'POST',
+    headers: authHeaders,
+    body: JSON.stringify({rating: 5, content: '很喜歡這裡'}),
+  })
+  await fetch(base + '/api/reviews/spot-11', {
+    method: 'POST',
+    headers: authHeaders,
+    body: JSON.stringify({rating: 3, content: '普通'}),
+  })
+
+  const res = await fetch(base + '/api/reviews/mine/count', {headers: {Authorization: 'Bearer valid-token'}})
+  assert.equal(res.status, 200)
+  const body = await res.json()
+  assert.equal(body.count, 2)
 })
 
 test('DELETE /api/account 未帶 token 回 401', async () => {

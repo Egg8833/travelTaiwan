@@ -22,11 +22,12 @@ const is960Width = computed(() => {
 
 const inputText = ref(null);
 const clickSearch = () => {
-  inputText.value.focus();
+  inputText.value?.focus();
   menuListShow.value = !menuListShow.value;
 };
 
 const route = useRoute();
+const isHome = computed(() => route.name === "home");
 watch(route, (newRoute) => {
   if (newRoute.path) {
     // 切換頁面後自動關閉選單
@@ -52,19 +53,20 @@ watch(route, (newRoute) => {
         <router-link to="/">
           <img src="../assets/images/logo.svg" alt="logo" class="h-[21px]" />
         </router-link>
-        <button @click="clickSearch">
+        <button v-if="!isHome" @click="clickSearch">
           <img
             src="../assets/images/icon/search-m.svg"
             alt="search"
             class="md:hidden"
           />
         </button>
+        <div v-else class="w-6 md:hidden"></div>
       </div>
       <div
         class="absolute top-[54px] left-0 right-0 px-4 py-6 bg-[#f0f0f0] md:static md:flex md:bg-white md:py-0 md:items-center md:w-full md:justify-between md:px-0 md:pl-6"
         :class="{ hidden: !menuListShow, 'md:block': is960Width }"
       >
-        <div class="relative pb-5 md:pb-0">
+        <div v-if="!isHome" class="relative pb-5 md:pb-0">
           <input
             ref="inputText"
             type="text"

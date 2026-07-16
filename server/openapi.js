@@ -356,6 +356,24 @@ export default {
         },
       },
     },
+    '/api/reviews/mine/count': {
+      get: {
+        tags: ['Review'],
+        summary: '取得目前使用者已留言的評論總數（跨所有景點）',
+        security: [{bearerAuth: []}],
+        responses: {
+          200: {
+            description: '評論總數',
+            content: {
+              'application/json': {
+                schema: {type: 'object', properties: {count: {type: 'integer', example: 3}}},
+              },
+            },
+          },
+          401: {description: '未登入或 Token 無效', content: {'application/json': {schema: {$ref: '#/components/schemas/Error'}}}},
+        },
+      },
+    },
     '/api/reviews/{spotId}/{reviewId}': {
       patch: {
         tags: ['Review'],

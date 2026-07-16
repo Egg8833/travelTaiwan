@@ -51,15 +51,15 @@ const clickViewPoint = () => {
 
     <HotView></HotView>
     <!-- 注目景點 -->
-    <div class="viewPoint flex flex-col items-center justify-center">
+    <div class="viewPoint flex flex-col items-center justify-center py-20 md:py-28">
       <h3
-        class="text-center pt-[110px] pb-5 text-[36px] text-[#fefefe] font-700 leading-11"
+        class="text-center pb-6 text-[36px] text-[#fefefe] font-700 leading-11"
       >
         你不能錯過的
         <br class="md:hidden" />
         注目景點!
       </h3>
-      <button class="btn mb-[104px]" @click="clickViewPoint">
+      <button class="btn-accent" @click="clickViewPoint">
         賞楓秘境看這裡
       </button>
     </div>
@@ -68,8 +68,8 @@ const clickViewPoint = () => {
     <HotCheckInPoint :data="randomThreeItems"></HotCheckInPoint>
 
     <!-- mv -->
-    <div class="py-4">
-      <h2 class="text-center text-[30px] text-[#188E6B] font-700 pb-4">
+    <div class="py-20 md:py-28 max-w-[1000px] mx-auto px-6">
+      <h2 class="text-center text-[30px] text-[#188E6B] font-700 pb-6">
         看見台灣的美
       </h2>
       <main-mv></main-mv>

@@ -1,28 +1,52 @@
 <script setup>
-import {computed, onMounted} from "vue";
-import {useRouter} from "vue-router";
+import { computed, onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
 import card from "@/components/card.vue";
 import AccountSettingsPanel from "@/components/account/AccountSettingsPanel.vue";
-import {useAuthStore} from "@/store/authStore.js";
-import {useFavoriteStore} from "@/store/favoriteStore.js";
+import { useAuthStore } from "@/store/authStore.js";
+import { useFavoriteStore } from "@/store/favoriteStore.js";
+import { useReviewStore } from "@/store/reviewStore.js";
+import { getReviewsApi } from "@/api/index.js";
 import noImage from "@/assets/images/empty-img.png";
 
 const authStore = useAuthStore();
 const favoriteStore = useFavoriteStore();
+const reviewStore = useReviewStore();
 const router = useRouter();
 
-onMounted(() => {
-  favoriteStore.fetchFavorites();
+const ratingsBySpotId = ref({});
+
+const loadRatings = async (favorites) => {
+  const entries = await Promise.all(
+    favorites.map(async (fav) => {
+      try {
+        const reviews = await getReviewsApi(fav.spotId);
+        if (reviews.length === 0) return [fav.spotId, 0];
+        const average = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
+        return [fav.spotId, Math.round(average)];
+      } catch (e) {
+        console.error(e);
+        return [fav.spotId, 0];
+      }
+    })
+  );
+  ratingsBySpotId.value = Object.fromEntries(entries);
+};
+
+onMounted(async () => {
+  reviewStore.fetchMyReviewCount();
+  await favoriteStore.fetchFavorites();
+  loadRatings(favoriteStore.favoriteList);
 });
 
 const favoriteCount = computed(() => favoriteStore.favoriteList.length);
 
 const logout = async () => {
   await authStore.logout();
-  router.push({name: "home"});
+  router.push({ name: "home" });
 };
 
-const toCardData = fav => {
+const toCardData = (fav) => {
   const photoSrc = [fav.pictureUrl].filter(Boolean);
   if (photoSrc.length === 0) {
     photoSrc.push(noImage);
@@ -32,7 +56,7 @@ const toCardData = fav => {
     title: fav.spotName,
     photoSrc,
     tagText: [],
-    startNum: 0,
+    startNum: ratingsBySpotId.value[fav.spotId] ?? 0,
   };
 };
 </script>
@@ -67,10 +91,22 @@ const toCardData = fav => {
         </div>
       </div>
 
-      <div class="stub flex items-center justify-between md:flex-col md:justify-center gap-4 px-6 py-4 md:w-[180px]">
-        <div class="text-center md:text-right">
-          <p class="text-[28px] font-700 text-[#188E6B] leading-none">{{ favoriteCount }}</p>
-          <p class="text-[12px] text-[#188E6B]">收藏景點</p>
+      <div
+        class="stub flex items-center justify-between md:flex-col md:justify-center gap-4 px-6 py-4 md:w-[180px]"
+      >
+        <div class="flex gap-6 md:gap-4 md:flex-col">
+          <div class="flex items-center gap-2">
+            <p class="text-[12px] text-[#188E6B]">收藏景點</p>
+            <p class="text-[28px] font-700 text-[#188E6B] leading-none">
+              {{ favoriteCount }}
+            </p>
+          </div>
+          <div class="flex items-center gap-2">
+            <p class="text-[12px] text-[#188E6B]">撰寫評論</p>
+            <p class="text-[28px] font-700 text-[#188E6B] leading-none">
+              {{ reviewStore.myReviewCount }}
+            </p>
+          </div>
         </div>
         <button
           class="py-2 px-5 rounded-[62px] border-1 border-solid border-[#1Fb588] text-[#616161] font-700 whitespace-nowrap"
@@ -103,7 +139,7 @@ const toCardData = fav => {
           <path d="m14.5 9.5-2 5.5-2.5-3 5.5-2Z" fill="#28DAA5" />
         </svg>
         <p class="text-[#808080] mb-4">還沒有收藏任何景點，快去挑幾個放進口袋名單吧！</p>
-        <router-link :to="{name: 'viewList'}" class="btn inline-block">
+        <router-link :to="{ name: 'viewList' }" class="btn inline-block">
           去找景點
         </router-link>
       </div>

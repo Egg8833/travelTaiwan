@@ -5,10 +5,12 @@ import {
   addReviewApi,
   updateReviewApi,
   deleteReviewApi,
+  getMyReviewCountApi,
 } from '@/api/index.js'
 
 export const useReviewStore = defineStore('review', () => {
   const reviews = ref([])
+  const myReviewCount = ref(0)
 
   const fetchReviews = async spotId => {
     try {
@@ -18,9 +20,17 @@ export const useReviewStore = defineStore('review', () => {
     }
   }
 
-  const addReview = async (spotId, {rating, content}) => {
+  const fetchMyReviewCount = async () => {
     try {
-      const created = await addReviewApi(spotId, {rating, content})
+      myReviewCount.value = await getMyReviewCountApi()
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  const addReview = async (spotId, {rating, content, authorName}) => {
+    try {
+      const created = await addReviewApi(spotId, {rating, content, authorName})
       reviews.value = [created, ...reviews.value]
       return true
     } catch (e) {
@@ -54,5 +64,5 @@ export const useReviewStore = defineStore('review', () => {
     }
   }
 
-  return {reviews, fetchReviews, addReview, updateReview, deleteReview}
+  return {reviews, myReviewCount, fetchReviews, fetchMyReviewCount, addReview, updateReview, deleteReview}
 })

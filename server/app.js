@@ -16,6 +16,8 @@ const cityList = load('cityList.json')
 
 const cityEnToZh = Object.fromEntries(cityList.map(c => [c.City, c.CityName]))
 
+const asyncHandler = handler => (req, res, next) => handler(req, res, next).catch(next)
+
 export function createApp({verifyToken, favoritesRepo, reviewsRepo, accountRepo}) {
   const app = express()
   app.use(cors())
@@ -64,27 +66,27 @@ export function createApp({verifyToken, favoritesRepo, reviewsRepo, accountRepo}
     })
   })
 
-  app.get('/api/favorites', verifyToken, async (req, res) => {
+  app.get('/api/favorites', verifyToken, asyncHandler(async (req, res) => {
     res.json(await favoritesRepo.list(req.uid))
-  })
+  }))
 
-  app.post('/api/favorites/:spotId', verifyToken, async (req, res) => {
+  app.post('/api/favorites/:spotId', verifyToken, asyncHandler(async (req, res) => {
     const {spotName, pictureUrl} = req.body
     if (!spotName) return res.status(400).json({message: 'spotName is required'})
     const data = await favoritesRepo.add(req.uid, req.params.spotId, {spotName, pictureUrl})
     res.status(201).json(data)
-  })
+  }))
 
-  app.delete('/api/favorites/:spotId', verifyToken, async (req, res) => {
+  app.delete('/api/favorites/:spotId', verifyToken, asyncHandler(async (req, res) => {
     await favoritesRepo.remove(req.uid, req.params.spotId)
     res.status(204).end()
-  })
+  }))
 
-  app.get('/api/reviews/:spotId', async (req, res) => {
+  app.get('/api/reviews/:spotId', asyncHandler(async (req, res) => {
     res.json(await reviewsRepo.list(req.params.spotId))
-  })
+  }))
 
-  app.post('/api/reviews/:spotId', verifyToken, async (req, res) => {
+  app.post('/api/reviews/:spotId', verifyToken, asyncHandler(async (req, res) => {
     const {rating, content, authorName} = req.body
     if (!rating || rating < 1 || rating > 5) {
       return res.status(400).json({message: 'rating must be between 1 and 5'})
@@ -97,9 +99,13 @@ export function createApp({verifyToken, favoritesRepo, reviewsRepo, accountRepo}
       content,
     })
     res.status(201).json(review)
-  })
+  }))
 
-  app.patch('/api/reviews/:spotId/:reviewId', verifyToken, async (req, res) => {
+  app.get('/api/reviews/mine/count', verifyToken, asyncHandler(async (req, res) => {
+    res.json({count: await reviewsRepo.countByUser(req.uid)})
+  }))
+
+  app.patch('/api/reviews/:spotId/:reviewId', verifyToken, asyncHandler(async (req, res) => {
     const {rating, content} = req.body
     if (!rating || rating < 1 || rating > 5) {
       return res.status(400).json({message: 'rating must be between 1 and 5'})
@@ -109,28 +115,28 @@ export function createApp({verifyToken, favoritesRepo, reviewsRepo, accountRepo}
     if (result.error === 'not_found') return res.status(404).json({message: 'review not found'})
     if (result.error === 'forbidden') return res.status(403).json({message: 'not your review'})
     res.json(result)
-  })
+  }))
 
-  app.delete('/api/reviews/:spotId/:reviewId', verifyToken, async (req, res) => {
+  app.delete('/api/reviews/:spotId/:reviewId', verifyToken, asyncHandler(async (req, res) => {
     const result = await reviewsRepo.remove(req.params.spotId, req.params.reviewId, req.uid)
     if (result.error === 'not_found') return res.status(404).json({message: 'review not found'})
     if (result.error === 'forbidden') return res.status(403).json({message: 'not your review'})
     res.status(204).end()
-  })
+  }))
 
-  app.delete('/api/account', verifyToken, async (req, res) => {
-    try {
-      await accountRepo.deleteAccount(req.uid)
-      res.status(204).end()
-    } catch (e) {
-      console.error(e)
-      res.status(500).json({message: 'failed to delete account'})
-    }
-  })
+  app.delete('/api/account', verifyToken, asyncHandler(async (req, res) => {
+    await accountRepo.deleteAccount(req.uid)
+    res.status(204).end()
+  }))
 
   app.get('/api/openapi.json', (req, res) => res.json(openapiSpec))
 
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openapiSpec))
+
+  app.use((err, req, res, next) => {
+    console.error(err)
+    res.status(500).json({message: 'internal server error'})
+  })
 
   return app
 }

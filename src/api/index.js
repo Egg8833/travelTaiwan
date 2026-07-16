@@ -52,8 +52,11 @@ export const removeFavoriteApi = spotId =>
 export const getReviewsApi = spotId =>
   api.get(`/reviews/${spotId}`).then(res => res.data)
 
-export const addReviewApi = (spotId, {rating, content}) =>
-  api.post(`/reviews/${spotId}`, {rating, content}).then(res => res.data)
+export const getMyReviewCountApi = () =>
+  api.get('/reviews/mine/count').then(res => res.data.count)
+
+export const addReviewApi = (spotId, {rating, content, authorName}) =>
+  api.post(`/reviews/${spotId}`, {rating, content, authorName}).then(res => res.data)
 
 export const updateReviewApi = (spotId, reviewId, {rating, content}) =>
   api.patch(`/reviews/${spotId}/${reviewId}`, {rating, content}).then(res => res.data)

@@ -1,27 +1,41 @@
 .tag {
-  @apply py-2 px-[10px] bg-[#28DAA5] text-white rounded-[20px] text-[12px];
+  @apply py-2 px-[10px] bg-[#28DAA5] text-white rounded-[20px] text-[12px] transition-colors duration-200;
 
   &:hover {
-    @apply bg-[#188e6b] border: 1px solid #188E6B;
+    @apply bg-[#188e6b];
   }
 }
 
 .btn {
-  @apply bg-[#1fb588] text-[#fff] font-700 py-3 px-5 rounded-60px;
+  @apply bg-[#1fb588] text-[#fff] font-700 py-3 px-5 rounded-60px border border-solid border-transparent transition-all duration-200;
 
   &:hover {
-    @apply bg-[#188e6b] border: 1px solid #188E6B;
+    @apply bg-[#188e6b];
+  }
+
+  &:active {
+    @apply bg-[#146e53];
+  }
+
+  &:disabled {
+    @apply bg-[#a8dcca] cursor-not-allowed;
   }
 }
 
 .btn-secondary {
-  @apply bg-[#FFF] text-[#1Fb588] font-700 py-3 px-5 rounded-60px border border-[#1Fb588] border-solid;
+  @apply bg-[#FFF] text-[#1Fb588] font-700 py-3 px-5 rounded-60px border border-[#1Fb588] border-solid transition-all duration-200;
+
+  &:hover,
+  &.active {
+    @apply bg-[#188e6b] border-[#188E6B] text-[#fff];
+  }
+}
+
+// 楓紅：取自賞楓 / 廟宇banner的暖色，僅用於單一頁面中「唯一」的主要行動呼籲
+.btn-accent {
+  @apply bg-[#D9603B] text-[#fff] font-700 py-3 px-5 rounded-60px transition-colors duration-200;
 
   &:hover {
-    @apply bg-[#188e6b] border: 1px solid #188E6B text-[#fff];
-  }
-
-  &.active {
-    @apply bg-[#188e6b] border: 1px solid #188E6B text-[#fff];
+    @apply bg-[#B84A29];
   }
 }

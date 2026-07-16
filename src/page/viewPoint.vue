@@ -84,6 +84,7 @@ const submitReview = async () => {
   const ok = await reviewStore.addReview(viewListId.value, {
     rating: newReviewRating.value,
     content: newReviewContent.value,
+    authorName: authStore.user?.displayName || authStore.user?.email?.split("@")[0],
   });
   if (ok) {
     newReviewRating.value = 0;
@@ -118,10 +119,6 @@ const removeReview = async (reviewId) => {
   await reviewStore.deleteReview(viewListId.value, reviewId);
 };
 
-const noServe = () => {
-  alert("此服務尚未開啟,敬請期待");
-};
-
 const moveToNewViewPoint = (id) => {
   viewListId.value = id;
   loadViewData(id);
@@ -140,68 +137,42 @@ const formatReviewDate = (isoString) => {
 </script>
 
 <template>
-  <div v-if="renderViewData" class="max-w-[1232px] mx-auto overflow-hidden">
+  <div v-if="renderViewData" class="max-w-[1232px] mx-auto">
     <div class="pt-3 px-6 xl:px-4">
       <!-- 麵包屑 -->
-      <router-link to="/viewList" class="group flex items-center mb-2 md:mb-3">
+      <router-link to="/viewList" class="group flex items-center mb-4">
         <img src="../assets/images/icon/arrow-left.svg" alt="arrow" />
         <p class="ml-2 text-[#808080] font-700 group-hover:text-[#1fb588]">
           景點列表
         </p>
       </router-link>
 
-      <div class="flex justify-between items-center mb-1 md:mb-3">
-        <h4 class="text-[#434343] font-700 text-[18px] md:text-[46px]">
-          {{ renderViewData.title }}
-        </h4>
-        <div class="flex gap-2">
-          <a
-            v-if="renderViewData.phone"
-            :href="`tel:${dialPhone}`"
-            class="flex items-center justify-center w-[30px] h-[30px] rounded-full border-1 border-solid border-[#1Fb588]"
-          >
-            <img
-              src="../assets/images/icon/phone-filled.svg"
-              alt="phone"
-              class="w-[18px]"
-            />
-          </a>
-          <a
-            v-if="renderViewData.websiteUrl"
-            :href="renderViewData.websiteUrl"
-            target="_blank"
-            rel="noopener"
-            class="flex items-center justify-center w-[30px] h-[30px] rounded-full border-1 border-solid border-[#1Fb588]"
-          >
-            <img
-              src="../assets/images/icon/web.svg"
-              alt="web"
-              class="w-[18px]"
-            />
-          </a>
-          <div
-            class="flex items-center justify-center w-[30px] h-[30px] rounded-full border-1 border-solid border-[#1Fb588] cursor-pointer"
-            @click="toggleFavoriteOnPage"
-          >
-            <img
-              :src="isFavorited ? heartFilled : heartOutline"
-              alt="heart"
-              class="w-[18px]"
-            />
-          </div>
-        </div>
+      <!-- Hero 圖片 -->
+      <div class="relative rounded-[16px] shadow024 overflow-hidden">
+        <img
+          :src="getImagePath(renderViewData['photoSrc'])"
+          class="w-full h-[240px] md:h-[420px] object-cover"
+        />
+        <button
+          class="absolute top-4 right-4 flex items-center justify-center w-11 h-11 bg-white rounded-full border-1 border-solid border-[#28DAA5] cursor-pointer"
+          @click="toggleFavoriteOnPage"
+        >
+          <img :src="isFavorited ? heartFilled : heartOutline" alt="heart" class="w-5" />
+        </button>
       </div>
-      <div class="flex justify-between items-center mb-2">
+
+      <div class="flex flex-col md:flex-row md:justify-between md:items-start mt-6 mb-1">
+        <h1 class="text-[#434343] font-700 text-[24px] md:text-[40px] leading-tight">
+          {{ renderViewData.title }}
+        </h1>
         <satisfaction
+          class="mt-2 md:mt-2 shrink-0"
           :startNum="Math.round(averageRating)"
           :commit="true"
           :commitNum="reviewStore.reviews.length"
         ></satisfaction>
-        <p class="text-[#808080] w-30 md:w-unset">
-          {{ renderViewData.Address || " " }}
-        </p>
       </div>
-      <div class="flex gap-1 mb-2 md:mb-6">
+      <div class="flex gap-1 mb-8 flex-wrap">
         <button
           v-for="(item, index) in renderViewData['tagText']"
           :key="index"
@@ -211,190 +182,81 @@ const formatReviewDate = (isoString) => {
         </button>
       </div>
 
-      <!-- 圖片輪播 -->
-      <div class="md:flex md:justify-between">
-        <div class="-mx-6 md:w-[60%] md:order-1 md:mx-0">
-          <div class="relative">
-            <img
-              :src="getImagePath(renderViewData['photoSrc'])"
-              class="w-full object-cover"
-            />
-            <div
-              class="flex justify-center gap-2 absolute bottom-4 left-0 right-0"
-            >
-              <!-- <button
-                v-for="(item, index) in 3"
-                :key="index"
-                class="w-[10px] h-[10px] rounded-full bg-[#FFF]"
-              ></button> -->
-            </div>
-          </div>
-        </div>
-        <div class="pt-7 md:w-[35%] md:pt-0">
-          <div class="grid gap-y-7">
-            <div>
-              <h4
-                class="text-[#188E6B] font-700 text-[24px] pb-2 md:text-[32px]"
-              >
-                關於
-              </h4>
-              <ArticleToggle
-                class="text-[#616161 font-500 leading-5 md:text-[18px] leading-6"
-                :content="renderViewData['description']"
-                :maxSummaryWordCount="150"
-              ></ArticleToggle>
-            </div>
+      <!-- 主要內容：文章 + 側邊資訊卡 -->
+      <div class="md:flex md:gap-10 md:items-start">
+        <div class="md:w-[62%] flex flex-col gap-10">
+          <section>
+            <h2 class="text-[#188E6B] font-700 text-[22px] pb-3 md:text-[26px]">
+              關於
+            </h2>
+            <ArticleToggle
+              class="text-[#616161] font-500 leading-6 md:text-[16px]"
+              :content="renderViewData['description']"
+              :maxSummaryWordCount="150"
+            ></ArticleToggle>
+          </section>
 
-            <div>
-              <h4
-                class="text-[#188E6B] font-700 text-[24px] pb-2 md:text-[32px]"
-              >
-                開放時間
-              </h4>
-
-              <ArticleToggle
-                v-if="renderViewData['openTime']"
-                class="text-[#616161 font-500 leading-5 md:text-[18px] leading-6"
-                :content="renderViewData['openTime']"
-                :maxSummaryWordCount="120"
-              ></ArticleToggle>
-              <p v-else>全日開放，依各店家營業時間為主。</p>
-            </div>
-          </div>
+          <section>
+            <h2 class="text-[#188E6B] font-700 text-[22px] pb-3 md:text-[26px]">
+              開放時間
+            </h2>
+            <ArticleToggle
+              v-if="renderViewData['openTime']"
+              class="text-[#616161] font-500 leading-6 md:text-[16px]"
+              :content="renderViewData['openTime']"
+              :maxSummaryWordCount="120"
+            ></ArticleToggle>
+            <p v-else class="text-[#616161]">全日開放，依各店家營業時間為主。</p>
+          </section>
         </div>
-      </div>
 
-      <!-- 景點特色 -->
-      <div class="pt-8 grid gap-8">
-        <div>
-          <h4 class="text-[#188E6B] font-700 text-[24px] pb-2 md:text-[32px]">
-            聯絡資訊
-          </h4>
-          <ul class="flex gap-2 flex-col">
-            <li v-if="renderViewData.phone" class="flex items-center gap-2">
-              <span>電話：</span>
-              <a :href="`tel:${dialPhone}`" class="text-[#1FB588] underline">{{ renderViewData.phone }}</a>
-            </li>
-            <li v-if="renderViewData.websiteUrl" class="flex items-center gap-2">
-              <span>官網：</span>
-              <a :href="renderViewData.websiteUrl" target="_blank" rel="noopener" class="text-[#1FB588] underline">官方網站</a>
-            </li>
-            <li class="flex items-center gap-2">
-              <span>停車資訊：</span>
-              <span>{{ renderViewData.hasParking ? "有停車資訊" : "無停車資訊" }}</span>
-            </li>
-          </ul>
-        </div>
-        <!-- 交通方式 -->
-        <!-- <div>
-          <h4 class="text-[#188E6B] font-700 text-[24px] pb-3 md:text-[32px]">
-            交通方式
-          </h4>
-          <div class="flex items-center bg-[#f0f0f0] justify-center py-2">
-            <img src="../assets/images/icon/bus.svg" alt="" />
-            <p class="ml-3 text-[#808080] text-[18px] font-700 md:text-[24px]">
-              大眾運輸
+        <!-- 側邊資訊卡 -->
+        <aside class="md:w-[38%] mt-10 md:mt-0">
+          <div class="info-card shadow024 rounded-[16px] border border-solid border-[#eee] p-6 md:sticky md:top-24">
+            <p class="text-[13px] font-700 text-[#1fb588] tracking-widest uppercase mb-4">
+              景點資訊
             </p>
+            <ul class="flex flex-col gap-4">
+              <li v-if="renderViewData.Address" class="flex gap-3">
+                <img src="../assets/images/icon/pin.svg" alt="" class="w-5 h-5 shrink-0 mt-[2px]" />
+                <div>
+                  <p class="text-[12px] text-[#a0a0a0] mb-1">地址</p>
+                  <p class="text-[#434343]">{{ renderViewData.Address }}</p>
+                </div>
+              </li>
+              <li v-if="renderViewData.phone" class="flex gap-3">
+                <img src="../assets/images/icon/phone-filled.svg" alt="" class="w-5 h-5 shrink-0 mt-[2px]" />
+                <div>
+                  <p class="text-[12px] text-[#a0a0a0] mb-1">電話</p>
+                  <a :href="`tel:${dialPhone}`" class="text-[#1FB588] font-700">{{ renderViewData.phone }}</a>
+                </div>
+              </li>
+              <li v-if="renderViewData.websiteUrl" class="flex gap-3">
+                <img src="../assets/images/icon/web.svg" alt="" class="w-5 h-5 shrink-0 mt-[2px]" />
+                <div>
+                  <p class="text-[12px] text-[#a0a0a0] mb-1">官網</p>
+                  <a :href="renderViewData.websiteUrl" target="_blank" rel="noopener" class="text-[#1FB588] font-700 underline">官方網站</a>
+                </div>
+              </li>
+              <li class="flex gap-3">
+                <img src="../assets/images/icon/bed-o.svg" alt="" class="w-5 h-5 shrink-0 mt-[2px]" />
+                <div>
+                  <p class="text-[12px] text-[#a0a0a0] mb-1">停車資訊</p>
+                  <p class="text-[#434343]">{{ renderViewData.hasParking ? "有停車資訊" : "無停車資訊" }}</p>
+                </div>
+              </li>
+            </ul>
           </div>
-
-          <div class="md:flex">
-            <div
-              class="p-9 border-b border-b-solid border-[#eee] md:border-b-0 md:border-r-solid md:border-r"
-            >
-              <div class="flex justify-center items-center flex-col">
-                <div
-                  class="py-2 px-2 text-[12px] rounded-[20px] bg-[#808080] text-white mb-2 inline-block"
-                >
-                  公車
-                </div>
-                <p class="mb-3 text-center leading-5 md:text-lg">
-                  搭乘982、307等路線，至板橋站站牌，往中山路步行五分鐘即可抵達
-                </p>
-
-                <button
-                  class="flex items-center btn-secondary"
-                  @click="noServe"
-                >
-                  查看車次即時動態
-                  <img
-                    src="../assets/images/icon/bus-filled.svg"
-                    alt=""
-                    class="ml-2"
-                  />
-                </button>
-              </div>
-            </div>
-            <div
-              class="p-9 border-b border-b-solid border-[#eee] md:border-b-0 md:border-r-solid md:border-r"
-            >
-              <div class="flex justify-center items-center flex-col">
-                <div
-                  class="py-2 px-2 text-[12px] rounded-[20px] bg-[#808080] text-white mb-2 inline-block"
-                >
-                  火車、高鐵
-                </div>
-                <p class="mb-3 text-center leading-5 md:text-lg">
-                  搭至板橋站，往中山路步行五分鐘即可抵達
-                </p>
-
-                <button
-                  class="flex items-center btn-secondary"
-                  @click="noServe"
-                >
-                  查看車次即時動態
-                  <img
-                    src="../assets/images/icon/train-filled.svg"
-                    alt=""
-                    class="ml-2"
-                  />
-                </button>
-              </div>
-            </div>
-            <div class="p-9">
-              <div class="flex justify-center items-center flex-col">
-                <div
-                  class="py-2 px-2 text-[12px] rounded-[20px] bg-[#808080] text-white mb-2 inline-block"
-                >
-                  捷運
-                </div>
-                <p class="mb-3 text-center leading-5 md:text-lg">
-                  搭至板橋站，往中山路步行五分鐘即可抵達
-                </p>
-
-                <button
-                  class="flex items-center btn-secondary"
-                  @click="noServe"
-                >
-                  查看車次即時動態
-                  <img
-                    src="../assets/images/icon/mrt-filled.svg"
-                    alt=""
-                    class="ml-2"
-                  />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div> -->
+        </aside>
       </div>
 
       <!-- 評價 -->
-      <div class="mt-5">
-        <div>
-          <h4 class="text-[#188E6B] font-700 text-[24px] pb-4 md:text-[32px]">
-            旅客評價
-          </h4>
-          <div class="flex items-center gap-2">
-            <p class="text-[30px] text-[#434343] font-700">{{ averageRating || "–" }}</p>
-            <satisfaction
-              :startNum="Math.round(averageRating)"
-              :commit="true"
-              :commitNum="reviewStore.reviews.length"
-            ></satisfaction>
-          </div>
-        </div>
+      <section class="mt-14">
+        <h2 class="text-[#188E6B] font-700 text-[22px] pb-4 md:text-[26px]">
+          旅客評價
+        </h2>
 
-        <div class="pt-6 pb-6 border-b border-b-solid border-[#eee]">
+        <div class="pt-2 pb-6 border-b border-b-solid border-[#eee]">
           <div v-if="authStore.user">
             <p class="font-700 text-[#434343] mb-2">留下你的評論</p>
             <StarRatingInput v-model="newReviewRating" />
@@ -463,26 +325,29 @@ const formatReviewDate = (isoString) => {
             還沒有評論，成為第一個留言的人吧！
           </p>
         </div>
+      </section>
+    </div>
 
-        <div class="pb-10">
-          <h4 class="text-[#188E6B] font-700 text-[24px] pb-4 md:text-[32px]">
-            這些景點大家也推薦
-          </h4>
-          <div
-            class="flex justify-center flex-col gap-4 items-center md:grid md:grid-cols-3 md:gap-6"
+    <!-- 推薦景點：用淡底色跟上面內容做出區隔 -->
+    <section class="mt-16 bg-[#F3FBF8] py-14">
+      <div class="px-6 xl:px-4">
+        <h2 class="text-[#188E6B] font-700 text-[22px] pb-6 md:text-[26px]">
+          這些景點大家也推薦
+        </h2>
+        <div
+          class="flex justify-center flex-col gap-4 items-center md:grid md:grid-cols-3 md:gap-6"
+        >
+          <router-link
+            @click="moveToNewViewPoint(data.id)"
+            v-for="data in randomThreeItems"
+            :key="data.id"
+            :to="`${data.id}`"
           >
-            <router-link
-              @click="moveToNewViewPoint(data.id)"
-              v-for="data in randomThreeItems"
-              :key="data.id"
-              :to="`${data.id}`"
-            >
-              <card :cardData="data"></card>
-            </router-link>
-          </div>
+            <card :cardData="data"></card>
+          </router-link>
         </div>
       </div>
-    </div>
+    </section>
   </div>
 </template>
 
